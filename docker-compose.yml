@@ -6,5 +6,13 @@ services:
       - "8088:80"
 
 
+  # k6:
+  #   image: loadimpact/k6:latest
+  #   user: k6
+  #   volumes:
+  #     - ./k6:/home/k6
+  #     - ./k6/loadtest.js:/loadtest.js:ro
+  #   entrypoint: ["k6", "run", "/loadtest.js"]
+
     # volumes:
       # - .:/var/www/html
