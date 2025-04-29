@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    tty: true
+    ports:
+      - "8088:80"
+
+
+    # volumes:
+      # - .:/var/www/html
