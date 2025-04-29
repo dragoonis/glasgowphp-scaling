@@ -21,4 +21,3 @@ import './js/highlight.js';
 import './js/doclinks.js';
 
 import './js/flatpicker.js';
-
