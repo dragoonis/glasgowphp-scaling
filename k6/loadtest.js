@@ -30,8 +30,14 @@ export default function () {
 }
 
 export function handleSummary(data) {
+
+    // get an ISO timestamp and make it filesystem-friendly
+    const now = new Date().toISOString().replace(/[:]/g, '-');
+    // build your filename
+    const filename = `./k6/report-${now}.html`;
+
     return {
-        "result.html": htmlReport(data),
+        [filename]: htmlReport(data),
         stdout: textSummary(data, { indent: " ", enableColors: true }),
     };
 }
