@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 1s
+
+scrape_configs:
+  - job_name: 'php-fpm'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['php-fpm-exporter:9253']

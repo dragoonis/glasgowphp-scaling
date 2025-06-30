@@ -14,6 +14,15 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd zip pdo pdo_mysql pdo_sqlite
 
+RUN apt-get install -y git
+
+RUN git clone https://github.com/openswoole/ext-openswoole.git && \
+    cd ext-openswoole \
+    git checkout v25.2.0 \
+    phpize && \
+    ./configure && \
+    make && make install
+
 
 RUN apt-get install nginx procps nano htop tree -y
 
@@ -23,8 +32,6 @@ RUN usermod -d /var/www -u 1000 www-data && usermod --shell /bin/bash www-data &
 
 # Optional: Install composer (dependency manager)
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-
 
 COPY ./docker/normal-entrypoint.sh /entrypoint.sh
 

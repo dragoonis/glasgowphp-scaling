@@ -4,15 +4,65 @@ services:
     tty: true
     ports:
       - "8088:80"
+      - "9000"
+    networks:
+      - app-net
 
 
-  # k6:
-  #   image: loadimpact/k6:latest
-  #   user: k6
-  #   volumes:
-  #     - ./k6:/home/k6
-  #     - ./k6/loadtest.js:/loadtest.js:ro
-  #   entrypoint: ["k6", "run", "/loadtest.js"]
+  opcache-dashboard:
+    image: gometric/opcache-dashboard:latest
+    ports:
+      - "42042:42042"
+    volumes:
+      - ./config.yaml:/config.yaml:ro
+    command:
+      - --config=/config.yaml
 
-    # volumes:
-      # - .:/var/www/html
+  php-fpm-exporter:
+    image: hipages/php-fpm_exporter:latest
+    depends_on:
+      - app
+    environment:
+      PHP_FPM_SCRAPE_URI: "tcp://app:9000/fpm-status"
+    ports:
+      - "9253:9253"
+    networks:
+      - app-net
+
+
+  prometheus:
+    image: prom/prometheus:v2.53.4
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"
+    networks:
+      - app-net
+
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      # auto-provision datasource & dashboard provider
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - app-net
+
+
+
+
+networks:
+  app-net:
+    driver: bridge
+

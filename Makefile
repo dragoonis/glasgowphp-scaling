@@ -9,7 +9,12 @@ K6_SERVICE := k6
 up:
 	docker-compose stop app
 	docker-compose build app
+	docker-compose up -d prometheus grafana php-fpm-exporter
 	docker-compose up app
+
+exporter:
+	docker-compose build php-fpm-exporter
+	docker-compose up php-fpm-exporter
 
 ## loadtest: build & run the k6 service, then tear down containers
 k6:
