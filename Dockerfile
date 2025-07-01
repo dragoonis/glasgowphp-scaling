@@ -16,19 +16,27 @@ RUN apt-get update && apt-get install -y \
 
 RUN apt-get install -y git
 
+# Install build dependencies for OpenSwoole
+RUN apt-get install -y \
+    build-essential \
+    autoconf \
+    libtool \
+    pkg-config
+
+# Install OpenSwoole extension
 RUN git clone https://github.com/openswoole/ext-openswoole.git && \
-    cd ext-openswoole \
-    git checkout v25.2.0 \
+    cd ext-openswoole && \
+    git checkout v25.2.0 && \
     phpize && \
     ./configure && \
-    make && make install
-
+    make && \
+    make install && \
+    docker-php-ext-enable openswoole
 
 RUN apt-get install nginx procps nano htop tree -y
 
 # Permission Management
 RUN usermod -d /var/www -u 1000 www-data && usermod --shell /bin/bash www-data && groupmod -g 1000 www-data
-
 
 # Optional: Install composer (dependency manager)
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -42,13 +50,11 @@ COPY ./docker/fpm.conf /usr/local/etc/php-fpm.d/zz-docker.conf
 RUN echo "" > /etc/nginx/sites-enabled/default
 COPY ./docker/nginx/aa-nginx.conf /etc/nginx/conf.d/aa-nginx.conf
 
-
 # Copy your application code
 COPY --chown=www-data:www-data . /var/www/html
 
 # Set working directory
 WORKDIR /var/www/html
-
 
 # Expose port 9000 for php-fpm
 EXPOSE 9000 80
@@ -57,5 +63,3 @@ ENTRYPOINT [ "/var/www/html/docker/normal-entrypoint.sh" ]
 
 # Start php-fpm server
 CMD ["php-fpm"]
-
-

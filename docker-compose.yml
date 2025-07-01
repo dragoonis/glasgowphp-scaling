@@ -5,9 +5,10 @@ services:
     ports:
       - "8088:80"
       - "9000"
+    volumes:
+      - ./:/var/www/html:delegated
     networks:
       - app-net
-
 
   opcache-dashboard:
     image: gometric/opcache-dashboard:latest
