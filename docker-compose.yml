@@ -12,6 +12,46 @@ services:
     networks:
       - app-net
 
+  franken:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.franken
+    ports:
+      - "443:443"
+      - "443:443/udp"
+      - "2019:2019"
+    volumes:
+      - .:/app
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile
+    tty: true
+    environment:
+      CADDY_GLOBAL_OPTIONS: "admin 0.0.0.0:2019\nmetrics"
+      SERVER_NAME: ":8080"
+    networks:
+      - app-net
+
+  franken-worker:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.franken
+    ports:
+      - "444:443"
+      - "444:443/udp"
+      - "2020:2019"
+    volumes:
+      - .:/app
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile
+    tty: true
+    environment:
+      CADDY_GLOBAL_OPTIONS: "admin 0.0.0.0:2019\nmetrics"
+      FRANKENPHP_CONFIG: "worker ./public/index.php"
+      APP_RUNTIME: "Runtime\\FrankenPhpSymfony\\Runtime"
+      SERVER_NAME: ":8080"
+    networks:
+      - app-net
+
   opcache-dashboard:
     build:
       context: ./opcache
@@ -21,7 +61,7 @@ services:
     ports:
       - "42042:42042"
     volumes:
-      - ./config.yml:/config.yaml:ro
+      - ./opcache/config.yaml:/config.yaml:ro
     command:
       - --config=/config.yaml
     networks:
@@ -64,6 +104,10 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
     networks:
       - app-net
+
+volumes:
+  caddy_data:
+  caddy_config:
 
 networks:
   app-net:

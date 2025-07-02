@@ -3,11 +3,15 @@ pullInterval: 5
 clusters:
   app:
     groups:
-      common:
+      app:
         urlPattern: "http://{host}:80/agent-pull.php"
         hosts:
           - "app"
-
+      franken:
+        urlPattern: "http://{host}:8080/agent-pull.php"
+        hosts:
+          - "franken"
+          - "franken-worker"
 ui:
   host: 0.0.0.0
   port: 42042

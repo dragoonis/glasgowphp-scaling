@@ -1,0 +1,12 @@
+{
+	frankenphp {
+		worker {
+			file ./public/index.php
+		}
+	}
+}
+
+localhost {
+	encode zstd br gzip
+	php_server
+}

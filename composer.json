@@ -19,6 +19,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.3",
         "doctrine/orm": "^3.0",
         "league/commonmark": "^2.1",
+        "runtime/frankenphp-symfony": "*",
         "symfony/apache-pack": "^1.0",
         "symfony/asset": "7.1.*",
         "symfony/asset-mapper": "7.1.*",

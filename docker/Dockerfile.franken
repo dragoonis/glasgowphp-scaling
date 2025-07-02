@@ -1,0 +1,16 @@
+FROM dunglas/frankenphp
+
+WORKDIR /app
+
+RUN install-php-extensions \
+	gd \
+	intl \
+	zip \
+	opcache
+
+COPY --chown=www-data:www-data . .
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+EXPOSE 80
+EXPOSE 443
+EXPOSE 2019
