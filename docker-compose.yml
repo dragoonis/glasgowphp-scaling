@@ -1,23 +1,31 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
     tty: true
     ports:
       - "8088:80"
-      - "9000"
     volumes:
-      - ./:/var/www/html:delegated
+      - .:/var/www/html
+      - ./docker/symfony.ini:/usr/local/etc/php/conf.d/symfony.prod.ini
     networks:
       - app-net
 
   opcache-dashboard:
-    image: gometric/opcache-dashboard:latest
+    build:
+      context: ./opcache
+      dockerfile: ./Dockerfile
+      args:
+        VERSION: 0.6.0
     ports:
       - "42042:42042"
     volumes:
-      - ./config.yaml:/config.yaml:ro
+      - ./config.yml:/config.yaml:ro
     command:
       - --config=/config.yaml
+    networks:
+      - app-net
 
   php-fpm-exporter:
     image: hipages/php-fpm_exporter:latest
@@ -29,7 +37,6 @@ services:
       - "9253:9253"
     networks:
       - app-net
-
 
   prometheus:
     image: prom/prometheus:v2.53.4
@@ -43,7 +50,6 @@ services:
     networks:
       - app-net
 
-
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -55,13 +61,9 @@ services:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
     volumes:
-      # auto-provision datasource & dashboard provider
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
     networks:
       - app-net
-
-
-
 
 networks:
   app-net:

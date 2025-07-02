@@ -1,0 +1,23 @@
+pullInterval: 5
+
+clusters:
+  app:
+    groups:
+      common:
+        urlPattern: "http://{host}:80/agent-pull.php"
+        hosts:
+          - "app"
+
+ui:
+  host: 0.0.0.0
+  port: 42042
+
+metrics:
+  statsd:
+    enabled: true
+    host: "127.0.0.1"
+    port: 8125
+    prefix: "opcache.stats"
+  prometheus:
+    enabled: true
+    prefix: "opcache_stats"

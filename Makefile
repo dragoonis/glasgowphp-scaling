@@ -12,6 +12,10 @@ up:
 	docker-compose up -d prometheus grafana php-fpm-exporter
 	docker-compose up app
 
+opcache:
+	docker-compose build opcache-dashboard
+	docker-compose up -d opcache-dashboard
+
 exporter:
 	docker-compose build php-fpm-exporter
 	docker-compose up php-fpm-exporter

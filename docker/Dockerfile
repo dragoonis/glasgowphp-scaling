@@ -39,7 +39,7 @@ RUN apt-get install nginx procps nano htop tree -y
 RUN usermod -d /var/www -u 1000 www-data && usermod --shell /bin/bash www-data && groupmod -g 1000 www-data
 
 # Optional: Install composer (dependency manager)
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 COPY ./docker/normal-entrypoint.sh /entrypoint.sh
 
