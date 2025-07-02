@@ -26,7 +26,7 @@ services:
     tty: true
     environment:
       CADDY_GLOBAL_OPTIONS: "admin 0.0.0.0:2019\nmetrics"
-      SERVER_NAME: ":8080"
+      SERVER_NAME: ":8080 https://localhost:443"
     networks:
       - app-net
 
@@ -48,7 +48,7 @@ services:
       CADDY_GLOBAL_OPTIONS: "admin 0.0.0.0:2019\nmetrics"
       FRANKENPHP_CONFIG: "worker ./public/index.php"
       APP_RUNTIME: "Runtime\\FrankenPhpSymfony\\Runtime"
-      SERVER_NAME: ":8080"
+      SERVER_NAME: ":8080 https://localhost:443"
     networks:
       - app-net
 

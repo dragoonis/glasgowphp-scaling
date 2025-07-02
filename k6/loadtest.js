@@ -5,14 +5,15 @@ import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.1/index.js";
 
 // 1. Define your test stages (ramp-up, sustain, ramp-down)
 export let options = {
+    insecureSkipTLSVerify: true,
     stages: [
         { duration: '1s', target: 5 },    // Warm up
         { duration: '5s', target: 50 },    // Quick spike to 50 users
-        { duration: '15s', target: 50 },   // Stay at spike (test PHP-FPM limits)
-        { duration: '5s', target: 10 },    // Drop back to normal
-        { duration: '10s', target: 10 },   // Normal load
-        { duration: '5s', target: 100 },   // Even bigger spike (stress test)
-        { duration: '5s', target: 100 },   // Stay at big spike
+        { duration: '60s', target: 500 },   // Stay at spike (test PHP-FPM limits)
+        { duration: '5s', target: 400 },    // Drop back to normal
+        { duration: '10s', target: 300 },   // Normal load
+        { duration: '5s', target: 500 },   // Even bigger spike (stress test)
+        { duration: '5s', target: 400 },   // Stay at big spike
         { duration: '5s', target: 0 },     // Ramp down
     ],
     thresholds: {
@@ -21,18 +22,20 @@ export let options = {
 };
 
 export default function () {
-  // 2. Send GET request
-  const res = http.get('http://localhost:8088/en/blog/');
-  // const res = http.get('http://localhost:9501');
+  // 2. Randomly select a blog page to hit
+  const pages = [
+    // 'https://localhost:443/en/blog/',
+    // 'https://localhost:443/en/blog/page/2',
+    'https://localhost:444/en/blog/page/3',
+  ];
+  const url = pages[Math.floor(Math.random() * pages.length)];
+  const res = http.get(url);
 
   // 3. Basic checks
   check(res, {
     'status is 200': (r) => r.status === 200,
     'body size > 1KB': (r) => r.body.length > 1024,
   });
-
-  // 4. Pause between iterations
-  sleep(1);
 }
 
 export function handleSummary(data) {
