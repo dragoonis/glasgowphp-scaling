@@ -11,8 +11,10 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libsqlite3-dev \
     sqlite3 \
+    libicu-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd zip pdo pdo_mysql pdo_sqlite
+    && docker-php-ext-configure intl \
+    && docker-php-ext-install gd zip intl pdo pdo_mysql pdo_sqlite
 
 RUN apt-get install -y git
 
@@ -22,16 +24,6 @@ RUN apt-get install -y \
     autoconf \
     libtool \
     pkg-config
-
-# Install OpenSwoole extension
-RUN git clone https://github.com/openswoole/ext-openswoole.git && \
-    cd ext-openswoole && \
-    git checkout v25.2.0 && \
-    phpize && \
-    ./configure && \
-    make && \
-    make install && \
-    docker-php-ext-enable openswoole
 
 RUN apt-get install nginx procps nano htop tree -y
 
@@ -60,6 +52,3 @@ WORKDIR /var/www/html
 EXPOSE 9000 80
 
 ENTRYPOINT [ "/var/www/html/docker/normal-entrypoint.sh" ]
-
-# Start php-fpm server
-CMD ["php-fpm"]

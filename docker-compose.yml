@@ -8,7 +8,6 @@ services:
       - "8088:80"
     volumes:
       - .:/var/www/html
-      - ./docker/symfony.ini:/usr/local/etc/php/conf.d/symfony.prod.ini
     networks:
       - app-net
 
@@ -21,7 +20,7 @@ services:
       - "443:443/udp"
       - "2019:2019"
     volumes:
-      - .:/app
+      - .:/var/www/html
       - ./docker/Caddyfile:/etc/caddy/Caddyfile
     tty: true
     environment:
@@ -39,7 +38,7 @@ services:
       - "444:443/udp"
       - "2020:2019"
     volumes:
-      - .:/app
+      - .:/var/www/html
       - caddy_data:/data
       - caddy_config:/config
       - ./docker/Caddyfile:/etc/caddy/Caddyfile

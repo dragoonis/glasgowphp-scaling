@@ -1,12 +1,19 @@
 {
 	frankenphp {
-		worker {
-			file ./public/index.php
-		}
+        worker {
+            file ./public/index.php
+        }
+
+        php_ini memory_limit 512M
 	}
 }
 
 localhost {
 	encode zstd br gzip
-	php_server
+
+    root public/
+
+	php_server {
+        try_files {path} index.php
+    }
 }

@@ -15,7 +15,6 @@ COPY --from=node-build /build/ /build/
 
 RUN cd /build && make binary
 
-
 FROM alpine:3.21.3
 
 COPY --from=go-build /build/bin/opcache-dashboard /usr/local/bin/
