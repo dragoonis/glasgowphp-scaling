@@ -21,7 +21,7 @@ services:
       - "2019:2019"
     volumes:
       - .:/var/www/html
-      - ./docker/Caddyfile:/etc/caddy/Caddyfile
+      - ./docker/Caddyfile.regular:/etc/caddy/Caddyfile
     tty: true
     environment:
       CADDY_GLOBAL_OPTIONS: "admin 0.0.0.0:2019\nmetrics"
