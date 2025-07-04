@@ -1,6 +1,6 @@
 <?php
 
-namespace App\MessageHandler;
+namespace App\CommandHandler;
 
 use App\Command\DeleteCustomerCommand;
 use App\Projection\CustomerProjectionService;

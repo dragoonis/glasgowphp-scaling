@@ -7,10 +7,10 @@ use App\Projection\ProductProjectionRepository;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
-final readonly class ListProductsCommandHandler
+final class ListProductsCommandHandler
 {
     public function __construct(
-        private ProductProjectionRepository $projectionRepository
+        private readonly ProductProjectionRepository $projectionRepository
     ) {}
 
     public function __invoke(ListProductsCommand $command): array

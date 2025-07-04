@@ -1,19 +1,19 @@
 <?php
 
-namespace App\MessageHandler;
+namespace App\CommandHandler;
 
-use App\Command\GetCustomerCommand;
-use App\Projection\CustomerProjectionRepository;
+use App\Command\GetOrderCommand;
+use App\Projection\OrderProjectionRepository;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
-final class GetCustomerCommandHandler
+final class GetOrderCommandHandler
 {
     public function __construct(
-        private readonly CustomerProjectionRepository $projectionRepository
+        private readonly OrderProjectionRepository $projectionRepository
     ) {}
 
-    public function __invoke(GetCustomerCommand $command): ?array
+    public function __invoke(GetOrderCommand $command): ?array
     {
         $projection = $this->projectionRepository->find($command->id);
         

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\MessageHandler;
+namespace App\CommandHandler;
 
 use App\Command\ListOrdersCommand;
 use App\Projection\OrderProjectionRepository;
