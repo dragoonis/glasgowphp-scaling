@@ -104,6 +104,14 @@ services:
     networks:
       - app-net
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - app-net
+
 volumes:
   caddy_data:
   caddy_config:
