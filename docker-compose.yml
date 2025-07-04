@@ -1,22 +1,73 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
     tty: true
     ports:
       - "8088:80"
-      - "9000"
+    volumes:
+      - .:/var/www/html
+      - ./docker/symfony.ini:/usr/local/etc/php/conf.d/symfony.prod.ini
     networks:
       - app-net
 
+  franken:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.franken
+    ports:
+      - "443:443"
+      - "443:443/udp"
+      - "2019:2019"
+    volumes:
+      - .:/var/www/html
+      - ./docker/Caddyfile.regular:/etc/caddy/Caddyfile
+      - ./docker/symfony.ini:/usr/local/etc/php/conf.d/symfony.prod.ini
+    tty: true
+    environment:
+      CADDY_GLOBAL_OPTIONS: "admin 0.0.0.0:2019\nmetrics"
+      SERVER_NAME: ":8080 https://localhost:443"
+    networks:
+      - app-net
+
+  franken-worker:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.franken
+    ports:
+      - "444:443"
+      - "444:443/udp"
+      - "2020:2019"
+    volumes:
+      - .:/var/www/html
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile
+      - ./docker/symfony.ini:/usr/local/etc/php/conf.d/symfony.prod.ini
+    tty: true
+    environment:
+      CADDY_GLOBAL_OPTIONS: "admin 0.0.0.0:2019\nmetrics"
+      FRANKENPHP_CONFIG: "worker ./public/index.php"
+      APP_RUNTIME: "Runtime\\FrankenPhpSymfony\\Runtime"
+      SERVER_NAME: ":8080 https://localhost:443"
+    networks:
+      - app-net
 
   opcache-dashboard:
-    image: gometric/opcache-dashboard:latest
+    build:
+      context: ./opcache
+      dockerfile: ./Dockerfile
+      args:
+        VERSION: 0.6.0
     ports:
       - "42042:42042"
     volumes:
-      - ./config.yaml:/config.yaml:ro
+      - ./opcache/config.yaml:/config.yaml:ro
     command:
       - --config=/config.yaml
+    networks:
+      - app-net
 
   php-fpm-exporter:
     image: hipages/php-fpm_exporter:latest
@@ -28,7 +79,6 @@ services:
       - "9253:9253"
     networks:
       - app-net
-
 
   prometheus:
     image: prom/prometheus:v2.53.4
@@ -42,7 +92,6 @@ services:
     networks:
       - app-net
 
-
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -54,13 +103,21 @@ services:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
     volumes:
-      # auto-provision datasource & dashboard provider
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
     networks:
       - app-net
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - app-net
 
-
+volumes:
+  caddy_data:
+  caddy_config:
 
 networks:
   app-net:

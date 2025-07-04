@@ -17,3 +17,9 @@ controllers:
     prefix: /{_locale}
     defaults:
         _locale: '%locale%'
+
+metrics:
+    resource:
+        path: '../src/Controller/Metrics/'
+        namespace: App\Controller\Metrics
+    type: attribute

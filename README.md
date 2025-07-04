@@ -1,88 +1,105 @@
-Symfony Demo Application
-========================
+# GlasgowPHP Scaling Demo
 
-The "Symfony Demo Application" is a reference application created to show how
-to develop applications following the [Symfony Best Practices][1].
+This project demonstrates a scalable Symfony CQRS application with Redis and DB projections, Docker Compose, and k6 load testing. All common tasks are managed via the Makefile.
 
-You can also learn about these practices in [the official Symfony Book][5].
+## Quick Start
 
-Requirements
-------------
+1. **Build and start all services:**
+   ```bash
+   make up
+   ```
 
-  * PHP 8.2.0 or higher;
-  * PDO-SQLite PHP extension enabled;
-  * and the [usual Symfony application requirements][2].
+2. **Install dependencies:**
+   ```bash
+   docker-compose exec app composer install
+   ```
 
-Installation
-------------
+3. **Set up the database and seed data:**
+   ```bash
+   make setup
+   # (runs migrations and seeds the database)
+   ```
 
-There are 3 different ways of installing this project depending on your needs:
+4. **Rebuild projections (Redis):**
+   ```bash
+   make rebuild-projections
+   ```
 
-**Option 1.** [Download Symfony CLI][4] and use the `symfony` binary installed
-on your computer to run this command:
+5. **Access the app:**
+   - Web: http://localhost:8088/en
+   - API: http://localhost:8088/en/products
 
-```bash
-symfony new --demo my_project
+## Web Interfaces & Dashboards
+
+| Service               | URL                           | Description                           |
+|-----------------------|-------------------------------|---------------------------------------|
+| FPM App               | http://localhost:8088         | Main Symfony app (FPM)                |
+| Franken               | https://localhost:443         | FrankenPHP (HTTPS, alt runtime)       |
+| Franken Worker        | https://localhost:444         | FrankenPHP Worker (HTTPS)             |
+| Grafana               | http://localhost:3000         | Metrics dashboard (admin/admin)       |
+| Prometheus            | http://localhost:9090         | Prometheus metrics                    |
+| Opcache Dashboard     | http://localhost:42042        | PHP Opcache dashboard                 |
+| Opcache Metrics (FPM) | http://localhost:8088/metrics | PHP Opcache metrics via FPM app       |
+| Franken Metrics       | http://localhost:2019/metrics | Caddy/FrankenPHP metrics (non-worker) |
+| Worker Metrics        | http://localhost:2020/metrics | Caddy/FrankenPHP metrics (worker)     |
+
+## Grafana Dashboard
+
+A detailed PHP-FPM and OPcache monitoring dashboard is available in Grafana. It includes:
+- PHP-FPM health, queue, and process metrics
+- Request rate, duration, and memory usage
+- OPcache hit ratio, memory, and script cache stats
+- JIT and interned strings monitoring
+- Alerts and color-coded panels for quick health checks
+
+**See [`grafana-dashboard.md`](grafana-dashboard.md) for a full description of all panels and dashboard features.**
+
+## OPcache Configuration
+
+This project uses different OPcache configurations for development and production:
+
+- **Development** (`docker/symfony.ini`): `opcache.enable=0` - OPcache disabled for immediate code changes
+- **Production** (`docker/symfony.prod.ini`): OPcache enabled by default for performance
+
+**⚠️ Important Warning**: When OPcache is enabled (`opcache.enable=1`), code changes will not be reflected immediately. You must either:
+- Restart the PHP-FPM container: `docker-compose restart app`
+- Clear OPcache via the metrics endpoint: `curl http://localhost:8088/metrics/opcache/clear`
+- Or disable OPcache for development by setting `opcache.enable=0` in your PHP configuration
+
+The current docker-compose setup binds the development config (`symfony.ini`) to override the production config, ensuring OPcache is disabled for development.
+
+## FrankenPHP Auto-Reload (File Watching)
+
+FrankenPHP and franken-worker can automatically reload PHP workers when your code changes, thanks to the `watch` directive in the Caddyfile:
+
+```caddyfile
+frankenphp {
+    worker {
+        file ./public/index.php
+        watch
+    }
+    php_ini memory_limit 512M
+}
 ```
 
-**Option 2.** [Download Composer][6] and use the `composer` binary installed
-on your computer to run these commands:
+- If `watch` is present, FrankenPHP will monitor your PHP files and reload the worker process on changes.
+- This is especially useful for development, as you do not need to restart the container to see code changes.
+- Both the main FrankenPHP and franken-worker services support this if configured.
 
-```bash
-# you can create a new project based on the Symfony Demo project...
-composer create-project symfony/symfony-demo my_project
+**Note:** In production, you may want to remove the `watch` directive for performance and stability.
 
-# ...or you can clone the code repository and install its dependencies
-git clone https://github.com/symfony/demo.git my_project
-cd my_project/
-composer install
+## Caddy Configuration
+
+Caddy configuration can be extended via environment variables in the docker-compose.yml:
+
+```yaml
+environment:
+  CADDY_GLOBAL_OPTIONS: "admin 0.0.0.0:2019\nmetrics"
+  SERVER_NAME: ":8080 https://localhost:443"
 ```
 
-**Option 3.** Click the following button to deploy this project on Platform.sh,
-the official Symfony PaaS, so you can try it without installing anything locally:
+- `CADDY_GLOBAL_OPTIONS`: Appends global Caddy configuration (enables admin API and metrics)
+- `SERVER_NAME`: Defines server names for the Caddy instance
+- These values are appended to the base Caddyfile configuration
 
-<p align="center">
-<a href="https://console.platform.sh/projects/create-project?template=https://raw.githubusercontent.com/symfonycorp/platformsh-symfony-template-metadata/main/symfony-demo.template.yaml&utm_content=symfonycorp&utm_source=github&utm_medium=button&utm_campaign=deploy_on_platform"><img src="https://platform.sh/images/deploy/lg-blue.svg" alt="Deploy on Platform.sh" width="180px" /></a>
-</p>
-
-Usage
------
-
-There's no need to configure anything before running the application. There are
-2 different ways of running this application depending on your needs:
-
-**Option 1.** [Download Symfony CLI][4] and run this command:
-
-```bash
-cd my_project/
-symfony serve
-```
-
-Then access the application in your browser at the given URL (<https://localhost:8000> by default).
-
-**Option 2.** Use a web server like Nginx or Apache to run the application
-(read the documentation about [configuring a web server for Symfony][3]).
-
-On your local machine, you can run this command to use the built-in PHP web server:
-
-```bash
-cd my_project/
-php -S localhost:8000 -t public/
-```
-
-Tests
------
-
-Execute this command to run tests:
-
-```bash
-cd my_project/
-./bin/phpunit
-```
-
-[1]: https://symfony.com/doc/current/best_practices.html
-[2]: https://symfony.com/doc/current/setup.html#technical-requirements
-[3]: https://symfony.com/doc/current/setup/web_server_configuration.html
-[4]: https://symfony.com/download
-[5]: https://symfony.com/book
-[6]: https://getcomposer.org/
+This allows for flexible configuration without modifying the Caddyfile directly.

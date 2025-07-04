@@ -24,3 +24,5 @@
 ###< symfony/asset-mapper ###
 
 .vscode
+
+.idea/

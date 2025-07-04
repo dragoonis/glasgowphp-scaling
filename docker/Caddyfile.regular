@@ -1,0 +1,16 @@
+{
+	frankenphp {
+        php_ini memory_limit 512M
+        watch
+	}
+}
+
+localhost {
+	encode zstd br gzip
+
+    root public/
+
+	php_server {
+        try_files {path} index.php
+    }
+}
