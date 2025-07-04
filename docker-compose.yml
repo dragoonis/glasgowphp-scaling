@@ -8,6 +8,7 @@ services:
       - "8088:80"
     volumes:
       - .:/var/www/html
+      - ./docker/symfony.ini:/usr/local/etc/php/conf.d/symfony.prod.ini
     networks:
       - app-net
 
@@ -22,6 +23,7 @@ services:
     volumes:
       - .:/var/www/html
       - ./docker/Caddyfile.regular:/etc/caddy/Caddyfile
+      - ./docker/symfony.ini:/usr/local/etc/php/conf.d/symfony.prod.ini
     tty: true
     environment:
       CADDY_GLOBAL_OPTIONS: "admin 0.0.0.0:2019\nmetrics"
@@ -42,6 +44,7 @@ services:
       - caddy_data:/data
       - caddy_config:/config
       - ./docker/Caddyfile:/etc/caddy/Caddyfile
+      - ./docker/symfony.ini:/usr/local/etc/php/conf.d/symfony.prod.ini
     tty: true
     environment:
       CADDY_GLOBAL_OPTIONS: "admin 0.0.0.0:2019\nmetrics"

@@ -6,6 +6,7 @@ use App\Command\AddCustomerCommand;
 use App\Command\DeleteCustomerCommand;
 use App\Command\GetCustomerCommand;
 use App\Command\ListCustomersCommand;
+use App\Repository\CustomerRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,11 +18,33 @@ use Symfony\Component\Routing\Annotation\Route;
 final class CustomerController extends AbstractController
 {
     public function __construct(
-        private readonly MessageBusInterface $commandBus
+        private readonly MessageBusInterface $commandBus,
+        private readonly CustomerRepository $customerRepository
     ) {}
 
-    #[Route('', methods: ['GET'], name: 'list_customers')]
-    public function listCustomers(): JsonResponse
+    #[Route('/db', name: 'list_customers_db', methods: ['GET'])]
+    public function listCustomersDb(): JsonResponse
+    {
+        $customers = $this->customerRepository->findAll();
+        return $this->json([
+            'customers' => array_map(function($c) {
+                return [
+                    'id' => $c->getId(),
+                    'name' => $c->getName(),
+                    'email' => $c->getEmail(),
+                    'address' => $c->getAddress(),
+                    'city' => $c->getCity(),
+                    'postal_code' => $c->getPostalCode(),
+                    'country' => $c->getCountry(),
+                    'created_at' => $c->getCreatedAt()?->format(DATE_ATOM),
+                ];
+            }, $customers),
+            'total' => count($customers)
+        ]);
+    }
+
+    #[Route('/redis', name: 'list_customers_redis', methods: ['GET'])]
+    public function listCustomersRedis(): JsonResponse
     {
         $envelope = $this->commandBus->dispatch(new ListCustomersCommand());
         $projections = $envelope->last(HandledStamp::class)->getResult();
@@ -31,7 +54,7 @@ final class CustomerController extends AbstractController
         ]);
     }
 
-    #[Route('', methods: ['POST'], name: 'add_customer')]
+    #[Route('', name: 'add_customer', methods: ['POST'])]
     public function addCustomer(Request $request): JsonResponse
     {
         $command = new AddCustomerCommand(
@@ -47,20 +70,39 @@ final class CustomerController extends AbstractController
         return $this->json(['message' => 'Customer created successfully'], 201);
     }
 
-    #[Route('/{id}', methods: ['GET'], name: 'get_customer')]
-    public function getCustomer(int $id): JsonResponse
+    #[Route('/db/{id}', name: 'get_customer_db', methods: ['GET'])]
+    public function getCustomerDb(int $id): JsonResponse
     {
-        $envelope = $this->commandBus->dispatch(new GetCustomerCommand($id));
-        $customer = $envelope->last(HandledStamp::class)->getResult();
-
+        $customer = $this->customerRepository->find($id);
         if (!$customer) {
             return $this->json(['error' => 'Customer not found'], 404);
         }
+        return $this->json([
+            'customer' => [
+                'id' => $customer->getId(),
+                'name' => $customer->getName(),
+                'email' => $customer->getEmail(),
+                'address' => $customer->getAddress(),
+                'city' => $customer->getCity(),
+                'postal_code' => $customer->getPostalCode(),
+                'country' => $customer->getCountry(),
+                'created_at' => $customer->getCreatedAt()?->format(DATE_ATOM),
+            ]
+        ]);
+    }
 
+    #[Route('/redis/{id}', name: 'get_customer_redis', methods: ['GET'])]
+    public function getCustomerRedis(int $id): JsonResponse
+    {
+        $envelope = $this->commandBus->dispatch(new GetCustomerCommand($id));
+        $customer = $envelope->last(HandledStamp::class)->getResult();
+        if (!$customer) {
+            return $this->json(['error' => 'Customer not found'], 404);
+        }
         return $this->json(['customer' => $customer]);
     }
 
-    #[Route('/{id}', methods: ['DELETE'], name: 'delete_customer')]
+    #[Route('/{id}', name: 'delete_customer', methods: ['DELETE'])]
     public function deleteCustomer(int $id): JsonResponse
     {
         $command = new DeleteCustomerCommand($id);

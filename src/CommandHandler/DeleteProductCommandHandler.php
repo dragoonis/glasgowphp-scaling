@@ -4,7 +4,6 @@ namespace App\CommandHandler;
 
 use App\Command\DeleteProductCommand;
 use App\Projection\ProductProjectionRepository;
-use App\Repository\ProductRepository;
 use App\Projection\ProductSummaryProjectionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
@@ -14,7 +13,6 @@ use Psr\Log\LoggerInterface;
 final readonly class DeleteProductCommandHandler
 {
     public function __construct(
-        private ProductRepository $productRepository,
         private ProductProjectionRepository $projectionRepository,
         private ProductSummaryProjectionRepository $summaryProjectionRepository,
         private EntityManagerInterface $entityManager,
@@ -26,7 +24,7 @@ final readonly class DeleteProductCommandHandler
         try {
             $this->entityManager->beginTransaction();
 
-            $product = $this->productRepository->find($command->productId);
+            $product = $this->projectionRepository->find($command->productId);
 
             if ($product) {
                 $this->entityManager->remove($product);
@@ -34,7 +32,7 @@ final readonly class DeleteProductCommandHandler
             }
 
             $this->projectionRepository->delete($command->productId);
-            $this->summaryProjectionRepository->remove($command->productId);
+//            $this->summaryProjectionRepository->remove($command->productId);
 
             $this->entityManager->commit();
         } catch (\Throwable $e) {

@@ -27,13 +27,26 @@ final class CustomerProjectionRepository
 
     public function findAll(): array
     {
+        // Get all IDs in one query
         $allIds = $this->redis->smembers(self::REDIS_ALL_KEY);
-        $projections = [];
+        
+        if (empty($allIds)) {
+            return [];
+        }
 
-        foreach ($allIds as $id) {
-            $projection = $this->find((int) $id);
-            if ($projection) {
-                $projections[] = $projection;
+        // Build all keys at once
+        $keys = array_map(fn($id) => self::REDIS_KEY_PREFIX . $id, $allIds);
+        
+        // Get all customers in ONE query using MGET
+        $allData = $this->redis->mget($keys);
+        
+        $projections = [];
+        foreach ($allData as $index => $data) {
+            if ($data !== null) {
+                $decoded = json_decode($data, true);
+                if ($decoded) {
+                    $projections[] = $this->buildFromArray($decoded);
+                }
             }
         }
 

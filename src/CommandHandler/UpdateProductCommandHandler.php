@@ -48,7 +48,7 @@ final readonly class UpdateProductCommandHandler
             $this->entityManager->refresh($product);
 
             $this->productProjectionService->updateProjection($product);
-            $this->summaryProjectionService->updateProductSummary($product->getId());
+//            $this->summaryProjectionService->updateProductSummary($product->getId());
 
             $this->entityManager->commit();
         } catch (\Throwable $e) {

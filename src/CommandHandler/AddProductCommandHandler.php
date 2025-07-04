@@ -15,7 +15,6 @@ use Psr\Log\LoggerInterface;
 final readonly class AddProductCommandHandler
 {
     public function __construct(
-        private ProductSummaryProjectionService $summaryProjectionService,
         private ProductProjectionService        $productProjectionService,
         private EntityManagerInterface          $entityManager,
         private LoggerInterface                 $logger
@@ -36,7 +35,6 @@ final readonly class AddProductCommandHandler
             $this->entityManager->flush();
 
             $this->productProjectionService->updateProjection($product);
-            $this->summaryProjectionService->updateProductSummary($product->getId());
 
             $this->entityManager->commit();
         } catch (\Throwable $e) {

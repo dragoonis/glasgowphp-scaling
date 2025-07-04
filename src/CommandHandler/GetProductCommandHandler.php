@@ -17,7 +17,7 @@ final class GetProductCommandHandler
     {
         $projection = $this->projectionRepository->find($command->productId);
         
-        if (!$projection) {
+        if (! $projection) {
             return null;
         }
 

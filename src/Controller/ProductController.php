@@ -13,21 +13,24 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Repository\ProductRepository;
 
 #[Route('/products')]
 final class ProductController extends AbstractController
 {
     public function __construct(
-        private readonly MessageBusInterface $commandBus
-    ) {}
+        private readonly MessageBusInterface $commandBus,
+    )
+    {
+    }
 
-    #[Route('', name: 'list_products', methods: ['GET'])]
-    public function listProducts(): JsonResponse
+    #[Route('/redis', name: 'list_products_redis', methods: ['GET'])]
+    public function listProductsRedis(): JsonResponse
     {
         $envelope = $this->commandBus->dispatch(new ListProductsCommand());
         $projections = $envelope->last(HandledStamp::class)->getResult();
         return $this->json([
-            'products' => array_map(fn($p) => $p->toArray(), $projections),
+            'products' => array_map(fn($product) => $product->toArray(), $projections),
             'total' => count($projections)
         ]);
     }
@@ -35,26 +38,25 @@ final class ProductController extends AbstractController
     #[Route('', name: 'add_product', methods: ['POST'])]
     public function addProduct(Request $request): JsonResponse
     {
+        $data = $request->toArray();
         $command = new AddProductCommand(
-            $request->get('name'),
-            $request->get('description'),
-            $request->get('price'),
-            new \DateTimeImmutable($request->get('created_at') ?? 'now')
+            $data['name'],
+            $data['description'],
+            $data['price'],
+            new \DateTimeImmutable($data['created_at'] ?? 'now')
         );
         $this->commandBus->dispatch($command);
         return $this->json(['message' => 'Product created successfully'], 201);
     }
 
-    #[Route('/{id}', name: 'get_product', methods: ['GET'])]
-    public function getProduct(int $id): JsonResponse
+    #[Route('/redis/{id}', name: 'get_product_redis', methods: ['GET'])]
+    public function getProductRedis(int $id): JsonResponse
     {
         $envelope = $this->commandBus->dispatch(new GetProductCommand($id));
         $product = $envelope->last(HandledStamp::class)->getResult();
-
         if (!$product) {
             return $this->json(['error' => 'Product not found'], 404);
         }
-
         return $this->json(['product' => $product]);
     }
 
@@ -79,5 +81,41 @@ final class ProductController extends AbstractController
         );
         $this->commandBus->dispatch($command);
         return $this->json(['message' => 'Product updated successfully']);
+    }
+
+    #[Route('/db', name: 'list_products_db', methods: ['GET'])]
+    public function listProductsDb(ProductRepository $productRepository): JsonResponse
+    {
+        $products = $productRepository->findAll();
+        return $this->json([
+            'products' => array_map(function ($p) {
+                return [
+                    'id' => $p->getId(),
+                    'name' => $p->getName(),
+                    'description' => $p->getDescription(),
+                    'price' => $p->getPrice(),
+                    'created_at' => $p->getCreatedAt()?->format(DATE_ATOM),
+                ];
+            }, $products),
+            'total' => count($products)
+        ]);
+    }
+
+    #[Route('/db/{id}', name: 'get_product_db', methods: ['GET'])]
+    public function getProductDb(int $id, ProductRepository $productRepository): JsonResponse
+    {
+        $product = $productRepository->find($id);
+        if (!$product) {
+            return $this->json(['error' => 'Product not found'], 404);
+        }
+        return $this->json([
+            'product' => [
+                'id' => $product->getId(),
+                'name' => $product->getName(),
+                'description' => $product->getDescription(),
+                'price' => $product->getPrice(),
+                'created_at' => $product->getCreatedAt()?->format(DATE_ATOM),
+            ]
+        ]);
     }
 }

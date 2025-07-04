@@ -2,36 +2,34 @@
 
 namespace App\Command;
 
-use App\Projection\ProductProjectionService;
+use App\Entity\Product;
+use App\Projection\ProductDbProjectionBuilder;
+use App\Repository\ProductRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
+use App\Projection\ProductProjectionService;
+use App\Projection\ProductDbProjectionService;
 
 #[AsCommand(
     name: 'app:rebuild-product-projections',
-    description: 'Rebuild product projections from database',
+    description: 'Rebuilds all product DB projections from the main Product table.',
 )]
-final class RebuildProductProjectionsCommand extends Command
+class RebuildProductProjectionsCommand extends Command
 {
     public function __construct(
-        private readonly ProductProjectionService $projectionService
+        private readonly ProductProjectionService $redisProjectionService
     ) {
         parent::__construct();
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
-
-        $io->title('Rebuilding Product Projections');
-
-        $io->section('Clearing existing projections...');
-        $this->projectionService->rebuildAll();
-
-        $io->success('Product projections rebuilt successfully!');
-
+        $output->writeln('Rebuilding Redis product projections...');
+        $this->redisProjectionService->rebuildAll();
+        $output->writeln('Done!');
         return Command::SUCCESS;
     }
 } 

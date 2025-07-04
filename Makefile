@@ -53,10 +53,331 @@ worker-shell:
 k6:
 	k6 run ./k6/loadtest.js
 
+migrate: ## Run database migrations
+	docker-compose exec app php bin/console doctrine:migrations:migrate --no-interaction
+
+seed: ## Seed the database with test data
+	docker-compose exec app php bin/console app:seed-database
+
+setup: migrate seed ## Run migrations and seed database
+
 clean:
 	docker-compose down -v --remove-orphans
 
 ## help: show available targets
 help:
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-	awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
+	@echo "GlasgowPHP CQRS Load Testing"
+	@echo ""
+	@echo "Available targets:"
+	@echo "  help                    - Show this help message"
+	@echo ""
+	@echo "Franken Worker (https://localhost:444):"
+	@echo "  k6-franken-worker-products    - Test products endpoint"
+	@echo "  k6-franken-worker-products-db - Test products DB endpoint"
+	@echo "  k6-franken-worker-products-redis - Test products Redis endpoint"
+	@echo "  k6-franken-worker-customers   - Test customers endpoint"
+	@echo "  k6-franken-worker-customers-db - Test customers DB endpoint"
+	@echo "  k6-franken-worker-customers-redis - Test customers Redis endpoint"
+	@echo "  k6-franken-worker-orders      - Test orders endpoint"
+	@echo "  k6-franken-worker-orders-db   - Test orders DB endpoint"
+	@echo "  k6-franken-worker-orders-redis - Test orders Redis endpoint"
+	@echo "  k6-franken-worker-blog        - Test blog endpoint"
+	@echo ""
+	@echo "Franken (https://localhost:443):"
+	@echo "  k6-franken-products           - Test products endpoint"
+	@echo "  k6-franken-products-db        - Test products DB endpoint"
+	@echo "  k6-franken-products-redis     - Test products Redis endpoint"
+	@echo "  k6-franken-customers          - Test customers endpoint"
+	@echo "  k6-franken-customers-db       - Test customers DB endpoint"
+	@echo "  k6-franken-customers-redis    - Test customers Redis endpoint"
+	@echo "  k6-franken-orders             - Test orders endpoint"
+	@echo "  k6-franken-orders-db          - Test orders DB endpoint"
+	@echo "  k6-franken-orders-redis       - Test orders Redis endpoint"
+	@echo "  k6-franken-blog               - Test blog endpoint"
+	@echo ""
+	@echo "FPM (http://localhost:8088):"
+	@echo "  k6-fpm-products               - Test products endpoint"
+	@echo "  k6-fpm-products-db            - Test products DB endpoint"
+	@echo "  k6-fpm-products-redis         - Test products Redis endpoint"
+	@echo "  k6-fpm-customers              - Test customers endpoint"
+	@echo "  k6-fpm-customers-db           - Test customers DB endpoint"
+	@echo "  k6-fpm-customers-redis        - Test customers Redis endpoint"
+	@echo "  k6-fpm-orders                 - Test orders endpoint"
+	@echo "  k6-fpm-orders-db              - Test orders DB endpoint"
+	@echo "  k6-fpm-orders-redis           - Test orders Redis endpoint"
+	@echo "  k6-fpm-blog                   - Test blog endpoint"
+	@echo ""
+	@echo "Batch testing:"
+	@echo "  k6-all-franken-worker         - Run all tests against Franken Worker"
+	@echo "  k6-all-franken                - Run all tests against Franken"
+	@echo "  k6-all-fpm                    - Run all tests against FPM"
+	@echo "  k6-all-environments           - Run all tests against all environments"
+	@echo ""
+	@echo "Projection management:"
+	@echo "  rebuild-projections            - Rebuild all projections (products, customers, orders)"
+	@echo "  rebuild-products               - Rebuild product projections only"
+	@echo "  rebuild-customers              - Rebuild customer projections only"
+	@echo "  rebuild-orders                 - Rebuild order projections only"
+	@echo "  seed-db                        - Seed database with test data"
+	@echo "  reset-and-seed                 - Reset database and seed with test data"
+
+# Franken Worker targets
+.PHONY: k6-franken-worker-products
+k6-franken-worker-products:
+	@echo "Running products test against Franken Worker..."
+	k6 run --env BASE_URL=$(FRANKEN_WORKER_URL) k6/list_products.js
+
+.PHONY: k6-franken-worker-products-db
+k6-franken-worker-products-db:
+	@echo "Running products DB test against Franken Worker..."
+	k6 run --env BASE_URL=$(FRANKEN_WORKER_URL) k6/list_products_db.js
+
+.PHONY: k6-franken-worker-products-redis
+k6-franken-worker-products-redis:
+	@echo "Running products Redis test against Franken Worker..."
+	k6 run --env BASE_URL=$(FRANKEN_WORKER_URL) k6/list_products_redis.js
+
+.PHONY: k6-franken-worker-customers
+k6-franken-worker-customers:
+	@echo "Running customers test against Franken Worker..."
+	k6 run --env BASE_URL=$(FRANKEN_WORKER_URL) k6/list_customers.js
+
+.PHONY: k6-franken-worker-customers-db
+k6-franken-worker-customers-db:
+	@echo "Running customers DB test against Franken Worker..."
+	k6 run --env BASE_URL=$(FRANKEN_WORKER_URL) k6/list_customers_db.js
+
+.PHONY: k6-franken-worker-customers-redis
+k6-franken-worker-customers-redis:
+	@echo "Running customers Redis test against Franken Worker..."
+	k6 run --env BASE_URL=$(FRANKEN_WORKER_URL) k6/list_customers_redis.js
+
+.PHONY: k6-franken-worker-orders
+k6-franken-worker-orders:
+	@echo "Running orders test against Franken Worker..."
+	k6 run --env BASE_URL=$(FRANKEN_WORKER_URL) k6/list_orders.js
+
+.PHONY: k6-franken-worker-orders-db
+k6-franken-worker-orders-db:
+	@echo "Running orders DB test against Franken Worker..."
+	k6 run --env BASE_URL=$(FRANKEN_WORKER_URL) k6/list_orders_db.js
+
+.PHONY: k6-franken-worker-orders-redis
+k6-franken-worker-orders-redis:
+	@echo "Running orders Redis test against Franken Worker..."
+	k6 run --env BASE_URL=$(FRANKEN_WORKER_URL) k6/list_orders_redis.js
+
+.PHONY: k6-franken-worker-blog
+k6-franken-worker-blog:
+	@echo "Running blog test against Franken Worker..."
+	k6 run --env BASE_URL=$(FRANKEN_WORKER_URL) k6/loadtest.js
+
+# Franken targets
+.PHONY: k6-franken-products
+k6-franken-products:
+	@echo "Running products test against Franken..."
+	k6 run --env BASE_URL=$(FRANKEN_URL) k6/list_products.js
+
+.PHONY: k6-franken-products-db
+k6-franken-products-db:
+	@echo "Running products DB test against Franken..."
+	k6 run --env BASE_URL=$(FRANKEN_URL) k6/list_products_db.js
+
+.PHONY: k6-franken-products-redis
+k6-franken-products-redis:
+	@echo "Running products Redis test against Franken..."
+	k6 run --env BASE_URL=$(FRANKEN_URL) k6/list_products_redis.js
+
+.PHONY: k6-franken-customers
+k6-franken-customers:
+	@echo "Running customers test against Franken..."
+	k6 run --env BASE_URL=$(FRANKEN_URL) k6/list_customers.js
+
+.PHONY: k6-franken-customers-db
+k6-franken-customers-db:
+	@echo "Running customers DB test against Franken..."
+	k6 run --env BASE_URL=$(FRANKEN_URL) k6/list_customers_db.js
+
+.PHONY: k6-franken-customers-redis
+k6-franken-customers-redis:
+	@echo "Running customers Redis test against Franken..."
+	k6 run --env BASE_URL=$(FRANKEN_URL) k6/list_customers_redis.js
+
+.PHONY: k6-franken-orders
+k6-franken-orders:
+	@echo "Running orders test against Franken..."
+	k6 run --env BASE_URL=$(FRANKEN_URL) k6/list_orders.js
+
+.PHONY: k6-franken-orders-db
+k6-franken-orders-db:
+	@echo "Running orders DB test against Franken..."
+	k6 run --env BASE_URL=$(FRANKEN_URL) k6/list_orders_db.js
+
+.PHONY: k6-franken-orders-redis
+k6-franken-orders-redis:
+	@echo "Running orders Redis test against Franken..."
+	k6 run --env BASE_URL=$(FRANKEN_URL) k6/list_orders_redis.js
+
+.PHONY: k6-franken-blog
+k6-franken-blog:
+	@echo "Running blog test against Franken..."
+	k6 run --env BASE_URL=$(FRANKEN_URL) k6/loadtest.js
+
+# FPM targets
+.PHONY: k6-fpm-products
+k6-fpm-products:
+	@echo "Running products test against FPM..."
+	k6 run --env BASE_URL=$(FPM_URL) k6/list_products.js
+
+.PHONY: k6-fpm-products-db
+k6-fpm-products-db:
+	@echo "Running products DB test against FPM..."
+	k6 run --env BASE_URL=$(FPM_URL) k6/list_products_db.js
+
+.PHONY: k6-fpm-products-redis
+k6-fpm-products-redis:
+	@echo "Running products Redis test against FPM..."
+	k6 run --env BASE_URL=$(FPM_URL) k6/list_products_redis.js
+
+.PHONY: k6-fpm-customers
+k6-fpm-customers:
+	@echo "Running customers test against FPM..."
+	k6 run --env BASE_URL=$(FPM_URL) k6/list_customers.js
+
+.PHONY: k6-fpm-customers-db
+k6-fpm-customers-db:
+	@echo "Running customers DB test against FPM..."
+	k6 run --env BASE_URL=$(FPM_URL) k6/list_customers_db.js
+
+.PHONY: k6-fpm-customers-redis
+k6-fpm-customers-redis:
+	@echo "Running customers Redis test against FPM..."
+	k6 run --env BASE_URL=$(FPM_URL) k6/list_customers_redis.js
+
+.PHONY: k6-fpm-orders
+k6-fpm-orders:
+	@echo "Running orders test against FPM..."
+	k6 run --env BASE_URL=$(FPM_URL) k6/list_orders.js
+
+.PHONY: k6-fpm-orders-db
+k6-fpm-orders-db:
+	@echo "Running orders DB test against FPM..."
+	k6 run --env BASE_URL=$(FPM_URL) k6/list_orders_db.js
+
+.PHONY: k6-fpm-orders-redis
+k6-fpm-orders-redis:
+	@echo "Running orders Redis test against FPM..."
+	k6 run --env BASE_URL=$(FPM_URL) k6/list_orders_redis.js
+
+.PHONY: k6-fpm-blog
+k6-fpm-blog:
+	@echo "Running blog test against FPM..."
+	k6 run --env BASE_URL=$(FPM_URL) k6/loadtest.js
+
+# Batch testing targets
+.PHONY: k6-all-franken-worker
+k6-all-franken-worker:
+	@echo "Running all tests against Franken Worker..."
+	$(MAKE) k6-franken-worker-products
+	$(MAKE) k6-franken-worker-products-db
+	$(MAKE) k6-franken-worker-products-redis
+	$(MAKE) k6-franken-worker-customers
+	$(MAKE) k6-franken-worker-customers-db
+	$(MAKE) k6-franken-worker-customers-redis
+	$(MAKE) k6-franken-worker-orders
+	$(MAKE) k6-franken-worker-orders-db
+	$(MAKE) k6-franken-worker-orders-redis
+	$(MAKE) k6-franken-worker-blog
+
+.PHONY: k6-all-franken
+k6-all-franken:
+	@echo "Running all tests against Franken..."
+	$(MAKE) k6-franken-products
+	$(MAKE) k6-franken-products-db
+	$(MAKE) k6-franken-products-redis
+	$(MAKE) k6-franken-customers
+	$(MAKE) k6-franken-customers-db
+	$(MAKE) k6-franken-customers-redis
+	$(MAKE) k6-franken-orders
+	$(MAKE) k6-franken-orders-db
+	$(MAKE) k6-franken-orders-redis
+	$(MAKE) k6-franken-blog
+
+.PHONY: k6-all-fpm
+k6-all-fpm:
+	@echo "Running all tests against FPM..."
+	$(MAKE) k6-fpm-products
+	$(MAKE) k6-fpm-products-db
+	$(MAKE) k6-fpm-products-redis
+	$(MAKE) k6-fpm-customers
+	$(MAKE) k6-fpm-customers-db
+	$(MAKE) k6-fpm-customers-redis
+	$(MAKE) k6-fpm-orders
+	$(MAKE) k6-fpm-orders-db
+	$(MAKE) k6-fpm-orders-redis
+	$(MAKE) k6-fpm-blog
+
+.PHONY: k6-all-environments
+k6-all-environments:
+	@echo "Running all tests against all environments..."
+	$(MAKE) k6-all-franken-worker
+	$(MAKE) k6-all-franken
+	$(MAKE) k6-all-fpm
+
+# Utility targets
+.PHONY: k6-clean-reports
+k6-clean-reports:
+	@echo "Cleaning k6 report files..."
+	rm -f k6/report-*.html
+
+.PHONY: k6-install
+k6-install:
+	@echo "Installing k6..."
+	@if command -v k6 >/dev/null 2>&1; then \
+		echo "k6 is already installed"; \
+	else \
+		echo "Installing k6..."; \
+		if command -v brew >/dev/null 2>&1; then \
+			brew install k6; \
+		elif command -v apt-get >/dev/null 2>&1; then \
+			sudo apt-get update && sudo apt-get install -y k6; \
+		else \
+			echo "Please install k6 manually from https://k6.io/docs/getting-started/installation/"; \
+		fi; \
+	fi
+
+# Projection rebuild targets
+.PHONY: rebuild-projections
+rebuild-projections:
+	@echo "Rebuilding all projections..."
+	docker-compose exec php bin/console app:rebuild-product-projections
+	docker-compose exec php bin/console app:rebuild-customer-projections
+	docker-compose exec php bin/console app:rebuild-order-projections
+
+.PHONY: rebuild-products
+rebuild-products:
+	@echo "Rebuilding product projections..."
+	docker-compose exec app bin/console app:rebuild-product-projections
+
+.PHONY: rebuild-customers
+rebuild-customers:
+	@echo "Rebuilding customer projections..."
+	docker-compose exec php bin/console app:rebuild-customer-projections
+
+.PHONY: rebuild-orders
+rebuild-orders:
+	@echo "Rebuilding order projections..."
+	docker-compose exec app bin/console app:rebuild-order-projections
+
+.PHONY: seed-db
+seed-db:
+	@echo "Seeding database with test data..."
+	docker-compose exec app bin/console app:seed-database
+
+.PHONY: reset-and-seed
+reset-and-seed:
+	@echo "Resetting database and seeding with test data..."
+	docker-compose exec php bin/console doctrine:database:drop --force --if-exists
+	docker-compose exec php bin/console doctrine:database:create
+	docker-compose exec php bin/console doctrine:migrations:migrate --no-interaction
+	docker-compose exec php bin/console app:seed-database

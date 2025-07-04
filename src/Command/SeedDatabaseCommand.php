@@ -26,9 +26,6 @@ final class SeedDatabaseCommand extends Command
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly ProductRepository $productRepository,
-        private readonly CustomerRepository $customerRepository,
-        private readonly OrderRepository $orderRepository,
         private readonly CustomerProjectionService $customerProjectionService,
         private readonly OrderProjectionService $orderProjectionService
     ) {
@@ -52,7 +49,7 @@ final class SeedDatabaseCommand extends Command
         // Create Products
         $io->section('Creating 10,000 products...');
         $products = [];
-        for ($i = 0; $i < 10000; $i++) {
+        for ($i = 0; $i < 100; $i++) {
             $product = new Product();
             $product->setName($faker->words(3, true));
             $product->setDescription($faker->paragraph());
@@ -62,7 +59,7 @@ final class SeedDatabaseCommand extends Command
             $this->entityManager->persist($product);
             $products[] = $product;
 
-            if (($i + 1) % 1000 === 0) {
+            if (($i + 1) % 100 === 0) {
                 $this->entityManager->flush();
                 $io->text("Created " . ($i + 1) . " products");
             }

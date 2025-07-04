@@ -6,6 +6,7 @@ use App\Command\AddOrderCommand;
 use App\Command\DeleteOrderCommand;
 use App\Command\GetOrderCommand;
 use App\Command\ListOrdersCommand;
+use App\Repository\OrderRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,11 +18,33 @@ use Symfony\Component\Routing\Annotation\Route;
 final class OrderController extends AbstractController
 {
     public function __construct(
-        private readonly MessageBusInterface $commandBus
+        private readonly MessageBusInterface $commandBus,
+        private readonly OrderRepository $orderRepository
     ) {}
 
-    #[Route('', methods: ['GET'], name: 'list_orders')]
-    public function listOrders(): JsonResponse
+    #[Route('/db', name: 'list_orders_db', methods: ['GET'])]
+    public function listOrdersDb(): JsonResponse
+    {
+        $orders = $this->orderRepository->findAll();
+        return $this->json([
+            'orders' => array_map(function($o) {
+                return [
+                    'id' => $o->getId(),
+                    'customer_id' => $o->getCustomer()?->getId(),
+                    'customer_name' => $o->getCustomer()?->getName(),
+                    'order_number' => $o->getOrderNumber(),
+                    'total_amount' => $o->getTotalAmount(),
+                    'status' => $o->getStatus(),
+                    'items' => $o->getItems(),
+                    'created_at' => $o->getCreatedAt()?->format(DATE_ATOM),
+                ];
+            }, $orders),
+            'total' => count($orders)
+        ]);
+    }
+
+    #[Route('/redis', name: 'list_orders_redis', methods: ['GET'])]
+    public function listOrdersRedis(): JsonResponse
     {
         $envelope = $this->commandBus->dispatch(new ListOrdersCommand());
         $projections = $envelope->last(HandledStamp::class)->getResult();
@@ -31,7 +54,7 @@ final class OrderController extends AbstractController
         ]);
     }
 
-    #[Route('', methods: ['POST'], name: 'add_order')]
+    #[Route('', name: 'add_order', methods: ['POST'])]
     public function addOrder(Request $request): JsonResponse
     {
         $data = $request->toArray();
@@ -48,20 +71,39 @@ final class OrderController extends AbstractController
         return $this->json(['message' => 'Order created successfully'], 201);
     }
 
-    #[Route('/{id}', methods: ['GET'], name: 'get_order')]
-    public function getOrder(int $id): JsonResponse
+    #[Route('/db/{id}', name: 'get_order_db', methods: ['GET'])]
+    public function getOrderDb(int $id): JsonResponse
     {
-        $envelope = $this->commandBus->dispatch(new GetOrderCommand($id));
-        $order = $envelope->last(HandledStamp::class)->getResult();
-
+        $order = $this->orderRepository->find($id);
         if (!$order) {
             return $this->json(['error' => 'Order not found'], 404);
         }
+        return $this->json([
+            'order' => [
+                'id' => $order->getId(),
+                'customer_id' => $order->getCustomer()?->getId(),
+                'customer_name' => $order->getCustomer()?->getName(),
+                'order_number' => $order->getOrderNumber(),
+                'total_amount' => $order->getTotalAmount(),
+                'status' => $order->getStatus(),
+                'items' => $order->getItems(),
+                'created_at' => $order->getCreatedAt()?->format(DATE_ATOM),
+            ]
+        ]);
+    }
 
+    #[Route('/redis/{id}', name: 'get_order_redis', methods: ['GET'])]
+    public function getOrderRedis(int $id): JsonResponse
+    {
+        $envelope = $this->commandBus->dispatch(new GetOrderCommand($id));
+        $order = $envelope->last(HandledStamp::class)->getResult();
+        if (!$order) {
+            return $this->json(['error' => 'Order not found'], 404);
+        }
         return $this->json(['order' => $order]);
     }
 
-    #[Route('/{id}', methods: ['DELETE'], name: 'delete_order')]
+    #[Route('/{id}', name: 'delete_order', methods: ['DELETE'])]
     public function deleteOrder(int $id): JsonResponse
     {
         $command = new DeleteOrderCommand($id);

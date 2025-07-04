@@ -11,14 +11,16 @@ final readonly class ProductProjectionService
         private ProductRepository           $productRepository,
         private ProductProjectionRepository $projectionRepository,
         private ProductProjectionBuilder    $projectionBuilder
-    ) {}
+    )
+    {
+    }
 
     public function rebuildAll(): void
     {
         $this->projectionRepository->clear();
-        
+
         $products = $this->productRepository->findAll();
-        
+
         foreach ($products as $product) {
             $projection = $this->projectionBuilder->build($product);
             $this->projectionRepository->save($projection);

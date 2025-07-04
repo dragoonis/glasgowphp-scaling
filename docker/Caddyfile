@@ -2,6 +2,7 @@
 	frankenphp {
         worker {
             file ./public/index.php
+            watch
         }
 
         php_ini memory_limit 512M
