@@ -1,222 +1,158 @@
-# PHP-FPM Performance Dashboard
+# Web Server Monitoring Dashboards Guide
 
-## Dashboard Panels Description
+A comprehensive guide to understanding and using two Grafana dashboards for full-stack web server monitoring: **Caddy HTTP Server** with FrankenPHP support and **PHP-FPM Performance** monitoring.
 
-The dashboard is organized into two main sections: **PHP-FPM Metrics** and **OPcache Metrics**, each in collapsible rows
-for better organization.
+## Overview
 
----
-
-## PHP-FPM Metrics Section
-
-### Top Row - Critical Health Indicators
-
-#### Max Children Reached
-
-- **Type:** Stat panel with threshold colors
-- **Purpose:** Shows how many times PHP-FPM hit the maximum process limit
-- **Alert Levels:** Green (0), Yellow (≥1), Red (≥5)
-- **Why Important:** Indicates if your pool size is too small for the workload
-
-#### Scrape Failures
-
-- **Type:** Stat panel with threshold colors
-- **Purpose:** Displays monitoring system failures when collecting PHP-FPM metrics
-- **Alert Levels:** Green (0), Yellow (≥1), Red (≥5)
-- **Why Important:** High failures mean unreliable monitoring data
-
-#### Slow Requests
-
-- **Type:** Stat panel with threshold colors
-- **Purpose:** Count of requests that exceeded the configured slow request threshold
-- **Alert Levels:** Green (0), Yellow (≥1), Red (≥10)
-- **Why Important:** Identifies performance bottlenecks in your application
-
-#### Process Utilization
-
-- **Type:** Stat panel with percentage gauge
-- **Purpose:** Shows what percentage of available processes are currently active
-- **Alert Levels:** Green (<70%), Yellow (70-90%), Red (>90%)
-- **Why Important:** High utilization indicates need for more processes or optimization
-
-#### Uptime
-
-- **Type:** Stat panel in seconds
-- **Purpose:** Shows how long the PHP-FPM pool has been running since last restart
-- **Why Important:** Tracks stability and restart frequency
-
-#### Queue Depth
-
-- **Type:** Stat panel with area graph
-- **Purpose:** Number of pending connections waiting for available processes
-- **Alert Levels:** Green (0), Yellow (≥1), Red (≥10)
-- **Why Important:** Queue buildup indicates insufficient process capacity
-
-### Middle Rows - Performance Trends
-
-#### Request Rate
-
-- **Type:** Time series line chart
-    - **Purpose:** Visualizes requests per second over time using rate() function
-    - **Metric:** `rate(phpfpm_accepted_connections[5m])`
-    - **Why Important:** Shows traffic patterns and helps identify peak usage periods
-
-#### Request Duration
-
-- **Type:** Time series with dual lines
-- **Purpose:** Tracks both average and maximum request processing times
-- **Metrics:** Average and max of `phpfpm_process_request_duration`
-- **Why Important:** Identifies performance degradation and response time spikes
-
-#### Process States
-
-- **Type:** Stacked time series chart
-- **Purpose:** Shows the distribution of active vs idle processes over time
-- **Visualization:** Stacked areas showing process state breakdown
-- **Why Important:** Helps understand process utilization patterns and capacity planning
-
-#### Process Details
-
-- **Type:** Data table with color coding
-- **Purpose:** Lists individual processes with their current state (Idle/Running)
-- **Features:** Color-coded states (Green=Idle, Blue=Running)
-- **Why Important:** Provides granular view of process-level activity
-
-### Bottom Row - Resource Monitoring
-
-#### Memory Usage per Request
-
-- **Type:** Time series with dual metrics
-- **Purpose:** Tracks memory consumption patterns for processed requests
-- **Metrics:** Average and maximum memory usage per request
-- **Why Important:** Identifies memory leaks and helps with capacity planning
+This monitoring suite provides complete visibility into your web application stack through two specialized dashboards. Each dashboard focuses on different aspects of your infrastructure, working together to give you end-to-end insights into web server and PHP application performance.
 
 ---
 
-## OPcache Metrics Section
+## 🌐 Caddy HTTP Server Dashboard
 
-### Top Row - Cache Health Indicators
+### Dashboard Structure
 
-#### OPcache Hit Ratio
+The Caddy dashboard is organized into four main sections:
 
-- **Type:** Stat panel with percentage gauge
-- **Purpose:** Shows the cache hit ratio as a percentage
-- **Alert Levels:** Red (<80%), Yellow (80-95%), Green (>95%)
-- **Metric:** `opcache_hit_ratio`
-- **Why Important:** Values above 95% indicate good cache performance; low hit rates suggest frequent code changes or
-  insufficient cache size
+#### 1. Summary Section
+High-level overview panels providing instant health indicators:
 
-#### OPcache Memory Usage
+- **Requests in Flight** - Shows current active requests being processed by the server
+- **Total Requests** - Cumulative request count for the selected time range
+- **Requests per Second** - Real-time request rate showing traffic intensity
+- **Median Request Duration** - P50 response time for overall performance assessment
+- **Median Response Duration** - P50 time-to-first-byte for server responsiveness
+- **Total Middleware Errors** - Count of errors encountered in Caddy middleware
+- **Request/Response Sizes** - Data transfer statistics (median and total)
+- **4xx/5xx Response Percentages** - Error rate indicators for client and server errors
 
-- **Type:** Stat panel with percentage gauge
-- **Purpose:** Shows memory utilization percentage of OPcache
-- **Alert Levels:** Green (<70%), Yellow (70-85%), Red (>85%)
-- **Metric:** `opcache_memory_used_bytes / (opcache_memory_used_bytes + opcache_memory_free_bytes)`
-- **Why Important:** High usage may indicate need for more memory allocation or cache optimization
+#### 2. FrankenPHP Metrics Section
+Specialized panels for PHP application server monitoring:
 
-#### Script Cache Usage
+**Thread Management:**
+- **Busy PHP Threads** - Number of threads currently processing requests (🟢 <10, 🟡 10-15, 🔴 >15)
+- **Total PHP Threads** - Available thread capacity
+- **Thread Utilization %** - Efficiency metric showing busy/total thread ratio (🟢 <70%, 🟡 70-90%, 🔴 >90%)
 
-- **Type:** Stat panel with percentage gauge
-- **Purpose:** Shows ratio of cached scripts vs maximum capacity
-- **Alert Levels:** Green (<80%), Yellow (80-90%), Red (>90%)
-- **Metric:** `opcache_num_cached_scripts / opcache_max_cached_keys`
-- **Why Important:** Indicates how close you are to the script limit
+**Worker Management:**
+- **Busy PHP Workers** - Active workers per worker type (🟢 <8, 🟡 8-12, 🔴 >12)
+- **Total PHP Workers** - Configured worker capacity per type
+- **Ready PHP Workers** - Workers that have successfully initialized
+- **Request Queue Depth** - Pending requests waiting for processing (🟢 0, 🟡 1-5, 🔴 >10)
 
-#### OPcache Status
+**Performance Tracking:**
+- **Worker Requests Total** - Cumulative requests processed by workers
+- **Average Worker Request Time** - Performance per worker type (🟢 <0.1s, 🟡 0.1-0.5s, 🔴 >0.5s)
+- **Worker Restarts** - Restart count indicating stability (🟢 0, 🟡 1-5, 🔴 >5)
 
-- **Type:** Stat panel with color-coded status
-- **Purpose:** Shows if OPcache is enabled or disabled
-- **Status Mapping:** Red (Disabled), Green (Enabled)
-- **Metric:** `opcache_enabled`
-- **Why Important:** Confirms OPcache is operational
+**Time Series Visualizations:**
+- **PHP Thread Utilization** - Thread usage trends over time
+- **PHP Worker Status & Queue** - Worker states and queue depth trends
+- **Worker Request Rate** - Requests per second by worker type
+- **Average Worker Request Time** - Performance trends by worker
 
-### Middle Rows - Cache Performance
+#### 3. Detailed Metrics Section
+In-depth analysis panels for comprehensive monitoring:
 
-#### Cache Hit/Miss Rate
+**Request Analysis:**
+- **Rate of Requests by HTTP Method** - Stacked time series showing GET, POST, PUT, DELETE patterns
+- **HTTP Status Breakdown** - Pie chart showing 2xx, 3xx, 4xx, 5xx distribution
+- **HTTP Method Breakdown** - Pie chart showing request method distribution
 
-- **Type:** Time series with dual lines
-- **Purpose:** Shows rate of cache hits and misses over time
-- **Metrics:** `rate(opcache_hits_total[5m])` and `rate(opcache_misses_total[5m])`
-- **Color Coding:** Green (Hits), Red (Misses)
-- **Why Important:** Consistent high hit rates indicate good cache performance
+**Performance Analysis:**
+- **Request Duration Percentiles** - P50, P75, P90, P95, P99 response times over time
+- **Data Transfer Rate** - Request vs response data flow visualization
+- **Rate of 4xx and 5xx Responses** - Error trends by status code
+- **Middleware Error Rate** - Caddy-specific error monitoring
 
-#### Memory Usage Breakdown
+#### 4. Heatmaps Section (Collapsible)
+Distribution analysis for detailed performance insights:
 
-- **Type:** Stacked time series chart
-- **Purpose:** Shows detailed memory allocation within OPcache
-- **Metrics:** Used, Free, and Wasted memory in bytes
-- **Color Coding:** Blue (Used), Green (Free), Orange (Wasted)
-- **Why Important:** Helps optimize memory allocation and identify wasted space
+- **Request Duration Heatmap** - Response time distribution patterns
+- **Request Size Heatmap** - Incoming request size patterns
+- **Response Duration Heatmap** - Time-to-first-byte distribution
+- **Response Size Heatmap** - Outgoing response size patterns
 
-#### Interned Strings
-
-- **Type:** Time series with dual axes
-- **Purpose:** Tracks interned strings memory usage and count
-- **Metrics:** `opcache_interned_strings_used_memory_bytes` and `opcache_interned_strings_count`
-- **Why Important:** Shows efficiency of string deduplication in PHP
-
-#### JIT Status
-
-- **Type:** Data table with color coding
-- **Purpose:** Displays JIT compilation status and configuration
-- **Metrics:** JIT Enabled, JIT On, Buffer Size, Optimization Level
-- **Features:** Color-coded enabled/disabled states
-- **Why Important:** Shows if JIT is enabled and how much buffer is being used
-
-### Bottom Row - Cache Management
-
-#### Cache Restarts
-
-- **Type:** Stacked time series chart
-- **Purpose:** Shows different types of cache restarts over time
-- **Metrics:**
-    - `opcache_oom_restarts_total` (Out of Memory)
-    - `opcache_hash_restarts_total` (Hash table full)
-    - `opcache_manual_restarts_total` (Manual restarts)
-- **Why Important:** Frequent restarts may indicate configuration issues or insufficient cache size
+### Key Dashboard Variables
+- **Datasource** - Prometheus instance selector
+- **Job** - Caddy job name filter
+- **Instance** - Specific Caddy instance selector
+- **Interval** - Metrics aggregation period (30s, 1m, 5m, etc.)
 
 ---
 
-## Dashboard Features
+## 🐘 PHP-FPM Performance Dashboard
 
-### Variables
+### Dashboard Structure
 
-- **Datasource:** Prometheus datasource selector
-- **Pool:** Dynamic PHP-FPM pool selector based on available pools
+The PHP-FPM dashboard is organized into two main collapsible sections:
 
-### Refresh Settings
+#### 1. PHP-FPM Metrics Section
 
-- **Auto-refresh:** Every 5 seconds
-- **Time Range:** Last 1 hour (configurable)
+**Critical Health Indicators (Top Row):**
+- **Max Children Reached** - Times the process limit was hit (🟢 0, 🟡 ≥1, 🔴 ≥5)
+- **Scrape Failures** - Monitoring system reliability (🟢 0, 🟡 ≥1, 🔴 ≥5)
+- **Slow Requests** - Requests exceeding configured threshold (🟢 0, 🟡 ≥1, 🔴 ≥10)
+- **Process Utilization** - Percentage of active processes (🟢 <70%, 🟡 70-90%, 🔴 >90%)
+- **Uptime** - Pool runtime since last restart
+- **Queue Depth** - Pending connections waiting for processes (🟢 0, 🟡 ≥1, 🔴 ≥10)
 
-### Tags
+**Performance Trends:**
+- **Request Rate** - Time series showing requests per second using `rate(phpfpm_accepted_connections[5m])`
+- **Request Duration** - Dual-line chart showing average and maximum processing times
+- **Process States** - Stacked area chart showing active vs idle process distribution
+- **Process Details** - Color-coded table listing individual process states (🟢 Idle, 🔵 Running)
 
-- php-fpm
-- performance
-- monitoring
-- opcache
+**Resource Monitoring:**
+- **Memory Usage per Request** - Average and maximum memory consumption trends
+
+#### 2. OPcache Metrics Section
+
+**Cache Health Indicators (Top Row):**
+- **OPcache Hit Ratio** - Cache efficiency percentage (🔴 <80%, 🟡 80-95%, 🟢 >95%)
+- **OPcache Memory Usage** - Memory utilization percentage (🟢 <70%, 🟡 70-85%, 🔴 >85%)
+- **Script Cache Usage** - Cached scripts vs maximum capacity (🟢 <80%, 🟡 80-90%, 🔴 >90%)
+- **OPcache Status** - Enabled/disabled indicator (🔴 Disabled, 🟢 Enabled)
+
+**Cache Performance:**
+- **Cache Hit/Miss Rate** - Time series showing hit vs miss trends (🟢 Hits, 🔴 Misses)
+- **Memory Usage Breakdown** - Stacked chart showing used, free, and wasted memory (🔵 Used, 🟢 Free, 🟠 Wasted)
+- **Interned Strings** - String deduplication efficiency metrics
+- **JIT Status** - Just-In-Time compilation details table with color-coded status
+
+**Cache Management:**
+- **Cache Restarts** - Stacked time series showing:
+  - Out-of-memory restarts (OOM)
+  - Hash table full restarts
+  - Manual restarts
+
+### Key Dashboard Variables
+- **Datasource** - Prometheus instance selector
+- **Pool** - PHP-FPM pool selector (dynamically populated)
 
 ---
 
-## Monitoring Best Practices
+## 📊 Understanding the Metrics
 
-### PHP-FPM Optimization
+### Performance Indicators
 
-1. **Monitor Process Utilization:** Keep below 80% during normal operations
-2. **Watch Queue Depth:** Should remain at 0 under normal load
-3. **Track Slow Requests:** Investigate any requests exceeding thresholds
-4. **Memory Monitoring:** Watch for memory leaks in long-running processes
+**Green Indicators (Good Performance):**
+- Low error rates (<1%)
+- Fast response times (<100ms P95)
+- High cache hit ratios (>95%)
+- Low process utilization (<70%)
+- Empty request queues
 
-### OPcache Optimization
+**Yellow Indicators (Warning):**
+- Moderate error rates (1-5%)
+- Elevated response times (100-500ms P95)
+- Medium cache hit ratios (80-95%)
+- Medium process utilization (70-90%)
+- Small request queues (1-5)
 
-1. **Maintain High Hit Ratio:** Target >95% for optimal performance
-2. **Monitor Memory Usage:** Keep below 85% to avoid performance issues
-3. **Watch Cache Restarts:** Frequent restarts indicate configuration problems
-4. **JIT Configuration:** Ensure JIT is properly configured if using PHP 8.0+
-
-### Alert Recommendations
-
-- Set up alerts for PHP-FPM max children reached
-- Monitor OPcache hit ratio drops below 90%
-- Alert on excessive cache restarts
-- Track memory usage trends for capacity planning
+**Red Indicators (Critical Issues):**
+- High error rates (>5%)
+- Slow response times (>500ms P95)
+- Low cache hit ratios (<80%)
+- High process utilization (>90%)
+- Large request queues (>10)
