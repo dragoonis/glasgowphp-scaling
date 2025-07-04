@@ -5,11 +5,28 @@ K6_SERVICE := k6
 build:
 	docker-compose build
 
+restart:
+	docker-compose stop app
+	docker-compose up -d app
+
+shell:
+	docker-compose exec app bash
+
 up:
 	docker-compose up -d app
+	docker-compose exec app composer install
+	docker-compose up -d redis
 
 down:
 	docker-compose up -d down
+
+
+ps:
+	docker-compose ps
+
+up-redis:
+	docker-compose up -d redis
+
 
 up-franken:
 	docker-compose up franken -d
@@ -22,6 +39,9 @@ up-worker:
 
 down-worker:
 	docker-compose stop franken-worker
+
+up-prometheus:
+	docker-compose up -d prometheus 
 
 up-grafana:
 	docker-compose up prometheus grafana -d
@@ -63,63 +83,6 @@ setup: migrate seed ## Run migrations and seed database
 
 clean:
 	docker-compose down -v --remove-orphans
-
-## help: show available targets
-help:
-	@echo "GlasgowPHP CQRS Load Testing"
-	@echo ""
-	@echo "Available targets:"
-	@echo "  help                    - Show this help message"
-	@echo ""
-	@echo "Franken Worker (https://localhost:444):"
-	@echo "  k6-franken-worker-products    - Test products endpoint"
-	@echo "  k6-franken-worker-products-db - Test products DB endpoint"
-	@echo "  k6-franken-worker-products-redis - Test products Redis endpoint"
-	@echo "  k6-franken-worker-customers   - Test customers endpoint"
-	@echo "  k6-franken-worker-customers-db - Test customers DB endpoint"
-	@echo "  k6-franken-worker-customers-redis - Test customers Redis endpoint"
-	@echo "  k6-franken-worker-orders      - Test orders endpoint"
-	@echo "  k6-franken-worker-orders-db   - Test orders DB endpoint"
-	@echo "  k6-franken-worker-orders-redis - Test orders Redis endpoint"
-	@echo "  k6-franken-worker-blog        - Test blog endpoint"
-	@echo ""
-	@echo "Franken (https://localhost:443):"
-	@echo "  k6-franken-products           - Test products endpoint"
-	@echo "  k6-franken-products-db        - Test products DB endpoint"
-	@echo "  k6-franken-products-redis     - Test products Redis endpoint"
-	@echo "  k6-franken-customers          - Test customers endpoint"
-	@echo "  k6-franken-customers-db       - Test customers DB endpoint"
-	@echo "  k6-franken-customers-redis    - Test customers Redis endpoint"
-	@echo "  k6-franken-orders             - Test orders endpoint"
-	@echo "  k6-franken-orders-db          - Test orders DB endpoint"
-	@echo "  k6-franken-orders-redis       - Test orders Redis endpoint"
-	@echo "  k6-franken-blog               - Test blog endpoint"
-	@echo ""
-	@echo "FPM (http://localhost:8088):"
-	@echo "  k6-fpm-products               - Test products endpoint"
-	@echo "  k6-fpm-products-db            - Test products DB endpoint"
-	@echo "  k6-fpm-products-redis         - Test products Redis endpoint"
-	@echo "  k6-fpm-customers              - Test customers endpoint"
-	@echo "  k6-fpm-customers-db           - Test customers DB endpoint"
-	@echo "  k6-fpm-customers-redis        - Test customers Redis endpoint"
-	@echo "  k6-fpm-orders                 - Test orders endpoint"
-	@echo "  k6-fpm-orders-db              - Test orders DB endpoint"
-	@echo "  k6-fpm-orders-redis           - Test orders Redis endpoint"
-	@echo "  k6-fpm-blog                   - Test blog endpoint"
-	@echo ""
-	@echo "Batch testing:"
-	@echo "  k6-all-franken-worker         - Run all tests against Franken Worker"
-	@echo "  k6-all-franken                - Run all tests against Franken"
-	@echo "  k6-all-fpm                    - Run all tests against FPM"
-	@echo "  k6-all-environments           - Run all tests against all environments"
-	@echo ""
-	@echo "Projection management:"
-	@echo "  rebuild-projections            - Rebuild all projections (products, customers, orders)"
-	@echo "  rebuild-products               - Rebuild product projections only"
-	@echo "  rebuild-customers              - Rebuild customer projections only"
-	@echo "  rebuild-orders                 - Rebuild order projections only"
-	@echo "  seed-db                        - Seed database with test data"
-	@echo "  reset-and-seed                 - Reset database and seed with test data"
 
 # Franken Worker targets
 .PHONY: k6-franken-worker-products
@@ -223,17 +186,13 @@ k6-franken-blog:
 	@echo "Running blog test against Franken..."
 	k6 run --env BASE_URL=$(FRANKEN_URL) k6/loadtest.js
 
-# FPM targets
-.PHONY: k6-fpm-products
-k6-fpm-products:
-	@echo "Running products test against FPM..."
-	k6 run --env BASE_URL=$(FPM_URL) k6/list_products.js
-
+# mysql read
 .PHONY: k6-fpm-products-db
 k6-fpm-products-db:
 	@echo "Running products DB test against FPM..."
 	k6 run --env BASE_URL=$(FPM_URL) k6/list_products_db.js
 
+# projection read
 .PHONY: k6-fpm-products-redis
 k6-fpm-products-redis:
 	@echo "Running products Redis test against FPM..."
@@ -381,3 +340,62 @@ reset-and-seed:
 	docker-compose exec php bin/console doctrine:database:create
 	docker-compose exec php bin/console doctrine:migrations:migrate --no-interaction
 	docker-compose exec php bin/console app:seed-database
+
+
+
+## help: show available targets
+help:
+	@echo "GlasgowPHP CQRS Load Testing"
+	@echo ""
+	@echo "Available targets:"
+	@echo "  help                    - Show this help message"
+	@echo ""
+	@echo "Franken Worker (https://localhost:444):"
+	@echo "  k6-franken-worker-products    - Test products endpoint"
+	@echo "  k6-franken-worker-products-db - Test products DB endpoint"
+	@echo "  k6-franken-worker-products-redis - Test products Redis endpoint"
+	@echo "  k6-franken-worker-customers   - Test customers endpoint"
+	@echo "  k6-franken-worker-customers-db - Test customers DB endpoint"
+	@echo "  k6-franken-worker-customers-redis - Test customers Redis endpoint"
+	@echo "  k6-franken-worker-orders      - Test orders endpoint"
+	@echo "  k6-franken-worker-orders-db   - Test orders DB endpoint"
+	@echo "  k6-franken-worker-orders-redis - Test orders Redis endpoint"
+	@echo "  k6-franken-worker-blog        - Test blog endpoint"
+	@echo ""
+	@echo "Franken (https://localhost:443):"
+	@echo "  k6-franken-products           - Test products endpoint"
+	@echo "  k6-franken-products-db        - Test products DB endpoint"
+	@echo "  k6-franken-products-redis     - Test products Redis endpoint"
+	@echo "  k6-franken-customers          - Test customers endpoint"
+	@echo "  k6-franken-customers-db       - Test customers DB endpoint"
+	@echo "  k6-franken-customers-redis    - Test customers Redis endpoint"
+	@echo "  k6-franken-orders             - Test orders endpoint"
+	@echo "  k6-franken-orders-db          - Test orders DB endpoint"
+	@echo "  k6-franken-orders-redis       - Test orders Redis endpoint"
+	@echo "  k6-franken-blog               - Test blog endpoint"
+	@echo ""
+	@echo "FPM (http://localhost:8088):"
+	@echo "  k6-fpm-products               - Test products endpoint"
+	@echo "  k6-fpm-products-db            - Test products DB endpoint"
+	@echo "  k6-fpm-products-redis         - Test products Redis endpoint"
+	@echo "  k6-fpm-customers              - Test customers endpoint"
+	@echo "  k6-fpm-customers-db           - Test customers DB endpoint"
+	@echo "  k6-fpm-customers-redis        - Test customers Redis endpoint"
+	@echo "  k6-fpm-orders                 - Test orders endpoint"
+	@echo "  k6-fpm-orders-db              - Test orders DB endpoint"
+	@echo "  k6-fpm-orders-redis           - Test orders Redis endpoint"
+	@echo "  k6-fpm-blog                   - Test blog endpoint"
+	@echo ""
+	@echo "Batch testing:"
+	@echo "  k6-all-franken-worker         - Run all tests against Franken Worker"
+	@echo "  k6-all-franken                - Run all tests against Franken"
+	@echo "  k6-all-fpm                    - Run all tests against FPM"
+	@echo "  k6-all-environments           - Run all tests against all environments"
+	@echo ""
+	@echo "Projection management:"
+	@echo "  rebuild-projections            - Rebuild all projections (products, customers, orders)"
+	@echo "  rebuild-products               - Rebuild product projections only"
+	@echo "  rebuild-customers              - Rebuild customer projections only"
+	@echo "  rebuild-orders                 - Rebuild order projections only"
+	@echo "  seed-db                        - Seed database with test data"
+	@echo "  reset-and-seed                 - Reset database and seed with test data"

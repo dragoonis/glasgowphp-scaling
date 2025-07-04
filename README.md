@@ -7,25 +7,82 @@ This project demonstrates a scalable Symfony CQRS application with Redis and DB 
 1. **Build and start all services:**
    ```bash
    make up
+
    ```
 
-2. **Install dependencies:**
+2. **Set up the database and seed data:**
    ```bash
-   docker-compose exec app composer install
+   make migrate
+   make seed
    ```
 
-3. **Set up the database and seed data:**
-   ```bash
-   make setup
-   # (runs migrations and seeds the database)
-   ```
+4. opcache introduction
 
-4. **Rebuild projections (Redis):**
+4.1 show fpm and opcache dashboard GUI
+
+show fpm status page - http://localhost:8088/fpm-status
+
+make up-exporter
+make ps | grep exporter
+
+go to http://localhost:9253/metrics
+
+make up-prometheus
+make ps | grep prom
+
+go to http://localhost:9090/targets?search=
+
+make up-grafana
+make ps | grep grafana
+
+# show target prom sources
+http://localhost:9090/targets?search=
+
+# view grafana dashboard
+open http://localhost:3000
+username: croatia
+password: croatia
+
+4.2 show grafana fpm/opcache dashboard
+
+make k6-fpm-products-db
+see k6/report-UTC-xxxxxxx.html
+i.e: k6/report-products-db-2025-07-04T16-59-09.331Z.html
+
+check grafana output - http://localhost:3000
+
+see fpm active processes. change to 1m (on left side)
+http://localhost:9090/graph?g0.expr=phpfpm_active_processes&g0.tab=0&g0.display_mode=lines&g0.show_exemplars=0&g0.range_input=1m
+
+ **Normal Data Fetch (mysql)**
+
+show FPM file
+show fpm metrics
+
+http://localhost:8088/fpm-status
+show FPM calculation logic (in slides) - todo add graphic to this readme.
+show FPM calculator website - https://spot13.com/pmcalculator/
+find special command to calculate "Stuff", i think cpu thread count, and stuff, it's inside slides and I think on matheus blog
+
+### run this inside the container, during k6
+ps --no-headers -o "rss,cmd" -C php-fpm7.4 | awk '{ sum+=$1} END { print sum/NR/1024 }'
+
+
+```
+   /products/db
+   /customers/db
+```
+
+ **Rebuild projections (Redis):**
    ```bash
    make rebuild-projections
+   /products/projection
+   /customers/projection
+
    ```
 
-5. **Access the app:**
+
+1. **Access the app:**
    - Web: http://localhost:8088/en
    - API: http://localhost:8088/en/products
 
@@ -58,15 +115,6 @@ A detailed PHP-FPM and OPcache monitoring dashboard is available in Grafana. It 
 
 This project uses different OPcache configurations for development and production:
 
-- **Development** (`docker/symfony.ini`): `opcache.enable=0` - OPcache disabled for immediate code changes
-- **Production** (`docker/symfony.prod.ini`): OPcache enabled by default for performance
-
-**⚠️ Important Warning**: When OPcache is enabled (`opcache.enable=1`), code changes will not be reflected immediately. You must either:
-- Restart the PHP-FPM container: `docker-compose restart app`
-- Clear OPcache via the metrics endpoint: `curl http://localhost:8088/metrics/opcache/clear`
-- Or disable OPcache for development by setting `opcache.enable=0` in your PHP configuration
-
-The current docker-compose setup binds the development config (`symfony.ini`) to override the production config, ensuring OPcache is disabled for development.
 
 ## FrankenPHP Auto-Reload (File Watching)
 

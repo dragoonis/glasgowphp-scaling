@@ -8,7 +8,8 @@ services:
       - "8088:80"
     volumes:
       - .:/var/www/html
-      - ./docker/symfony.ini:/usr/local/etc/php/conf.d/symfony.prod.ini
+      - ./docker/fpm.conf:/usr/local/etc/php-fpm.d/zz-docker.conf
+      - ./docker/symfony.prod.ini:/usr/local/etc/php/conf.d/symfony.prod.ini
     networks:
       - app-net
 
@@ -100,8 +101,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: croatia
+      GF_SECURITY_ADMIN_PASSWORD: croatia
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
     networks:

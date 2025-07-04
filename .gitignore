@@ -26,3 +26,5 @@
 .vscode
 
 .idea/
+
+k6/report-*

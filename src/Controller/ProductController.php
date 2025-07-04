@@ -24,7 +24,7 @@ final class ProductController extends AbstractController
     {
     }
 
-    #[Route('/redis', name: 'list_products_redis', methods: ['GET'])]
+    #[Route('/projection', name: 'list_products_redis', methods: ['GET'])]
     public function listProductsRedis(): JsonResponse
     {
         $envelope = $this->commandBus->dispatch(new ListProductsCommand());
@@ -49,7 +49,7 @@ final class ProductController extends AbstractController
         return $this->json(['message' => 'Product created successfully'], 201);
     }
 
-    #[Route('/redis/{id}', name: 'get_product_redis', methods: ['GET'])]
+    #[Route('/projection/{id}', name: 'get_product_redis', methods: ['GET'])]
     public function getProductRedis(int $id): JsonResponse
     {
         $envelope = $this->commandBus->dispatch(new GetProductCommand($id));
