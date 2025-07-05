@@ -8,7 +8,6 @@ testing. All common tasks are managed via the Makefile.
 1. **Build and start all services:**
    ```bash
    make up
-
    ```
 
 2. **Set up the database and seed data:**
@@ -16,6 +15,8 @@ testing. All common tasks are managed via the Makefile.
    make migrate
    make seed
    ```
+
+Go to http://localhost:8088
 
 ### opcache introduction
 
@@ -111,18 +112,8 @@ ps -ylC php-fpm --sort:rss
 ps --no-headers -o "rss,cmd" -C php-fpm | awk '{ sum+=$1} END { print sum/NR/1024 }'
 ```
 
-```
-   /products/db
-   /customers/db
-```
 
-**Rebuild projections (Redis):**
 
-   ```bash
-   make rebuild-projections
-   /products/projection
-   /customers/projection
-   ```
 
 PHP-FPM uses a process manager to handle incoming requests efficiently. The configuration directly affects what you see
 in system monitoring tools like `htop`.

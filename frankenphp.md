@@ -4,6 +4,22 @@
 
 This project uses FrankenPHP (a modern PHP runtime built on Caddy) with two different configurations for performance comparison and monitoring.
 
+### Bring it up
+
+# up normal franken
+```
+make up-franken
+```
+
+Go to - https://localhost/
+
+# up worker mode franken
+```
+make up-worker
+```
+
+Go to - https://localhost:444/
+
 ## Service Configuration
 
 ### FrankenPHP Services
@@ -83,6 +99,9 @@ frankenphp {
 ### Worker Metrics
 When `metrics` is enabled, worker information is exposed at the metrics endpoint:
 
+## View franken metrics for grafana
+Go to - http://localhost:2020/metrics
+
 ```
 # With num 1
 frankenphp_total_workers{worker="/var/www/html/public/index.php"} 1
@@ -91,7 +110,7 @@ frankenphp_total_workers{worker="/var/www/html/public/index.php"} 1
 frankenphp_total_workers{worker="/var/www/html/public/index.php"} 8
 ```
 
-- Access metrics at `http://localhost:2019/metrics` (or your configured admin port)
+- Access metrics at `http://localhost:2020/metrics` (or your configured admin port)
 - The `frankenphp_total_workers` metric shows active workers per script
 - Worker path reflects the `file` directive in your configuration
 - Updates in real-time when workers are added/removed
@@ -191,14 +210,12 @@ This approach keeps your Caddyfile clean while allowing per-deployment customiza
 
 **Test FrankenPHP (Regular Mode):**
 ```bash
-# Test regular FrankenPHP on port 443
-k6 run k6/list_products.js --env BASE_URL=https://localhost:443/en
+make k6-franken-products
 ```
 
 **Test FrankenPHP Worker Mode:**
 ```bash
-# Test worker mode on port 444
-k6 run k6/list_products.js --env BASE_URL=https://localhost:444/en
+make k6-franken-worker-products
 ```
 
 ### Monitoring FrankenPHP Performance

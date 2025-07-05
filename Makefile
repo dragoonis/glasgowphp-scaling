@@ -347,9 +347,9 @@ k6-install:
 .PHONY: rebuild-projections
 rebuild-projections:
 	@echo "Rebuilding all projections..."
-	docker-compose exec php bin/console app:rebuild-product-projections
-	docker-compose exec php bin/console app:rebuild-customer-projections
-	docker-compose exec php bin/console app:rebuild-order-projections
+	docker-compose exec app php bin/console app:rebuild-product-projections
+	docker-compose exec app php bin/console app:rebuild-customer-projections
+	docker-compose exec app php bin/console app:rebuild-order-projections
 
 .PHONY: rebuild-products
 rebuild-products:
