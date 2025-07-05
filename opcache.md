@@ -249,6 +249,15 @@ find . -type f -name "*.php" | wc -l
 - **memory_consumption:** 192MB allocated for bytecode storage
 - **interned_strings_buffer:** 16MB for storing duplicate strings once
 
+**Notes on opcache.max_accelerated_files**
+
+`opcache.max_accelerated_files` **has to be a prime number**.
+
+If you set a value that is not prime, PHP will automatically calculate and use the next prime number above your value. 
+The value **must be higher than the number of files in your application**; otherwise, the setting is useless and may cause issues.
+See the official documentation: [php.net: opcache.max_accelerated_files](https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.max-accelerated-files)
+
+
 ### Performance Optimizations
 ```
 opcache.fast_shutdown=1

@@ -120,6 +120,8 @@ migrate: ## Run database migrations
 	docker-compose exec app php bin/console doctrine:migrations:migrate --no-interaction
 
 seed: ## Seed the database with test data
+	@echo "Seeding database with test data..."
+	@echo "Seeder file: src/Command/SeedDatabaseCommand.php"
 	docker-compose exec app php bin/console app:seed-database
 
 setup: migrate seed ## Run migrations and seed database
