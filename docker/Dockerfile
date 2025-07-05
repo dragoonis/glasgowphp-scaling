@@ -35,8 +35,10 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 COPY ./docker/normal-entrypoint.sh /entrypoint.sh
 
-COPY ./docker/aa-php.ini /usr/local/etc/php/conf.d/aa-php.ini
+# PHP INI
 COPY ./docker/symfony.prod.ini /usr/local/etc/php/conf.d/symfony.prod.ini
+
+# FPM INI
 COPY ./docker/fpm.conf /usr/local/etc/php-fpm.d/zz-docker.conf
 
 RUN echo "" > /etc/nginx/sites-enabled/default

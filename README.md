@@ -62,11 +62,11 @@ http://localhost:9090/graph?g0.expr=phpfpm_active_processes&g0.tab=0&g0.display_
 show FPM file
 show fpm metrics
 
-http://localhost:8088/fpm-status
-show FPM calculation logic (in slides) - todo add graphic to this readme.
-show FPM calculator website - https://spot13.com/pmcalculator/
-find special command to calculate "Stuff", i think cpu thread count, and stuff, it's inside slides and I think on
-matheus blog
+- http://localhost:8088/fpm-status
+- show FPM calculation logic (in slides) - todo add graphic to this readme.
+- show FPM calculator website - https://spot13.com/pmcalculator/
+- find special command to calculate "Stuff", i think cpu thread count, and stuff, - it's inside slides and I think on
+- matheus blog
 
 ### run this inside the container, during k6
 
@@ -85,7 +85,6 @@ ps --no-headers -o "rss,cmd" -C php-fpm | awk '{ sum+=$1} END { print sum/NR/102
    make rebuild-projections
    /products/projection
    /customers/projection
-
    ```
 
 PHP-FPM uses a process manager to handle incoming requests efficiently. The configuration directly affects what you see
