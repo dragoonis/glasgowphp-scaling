@@ -386,3 +386,31 @@ site2.com {
 ```
 
 This approach keeps your Caddyfile clean while allowing per-deployment customization.
+
+## Resource Configuration Guidelines
+
+The appropriate values depend heavily on how your application is written, what it does and your hardware.
+it is recommended to have `num_threads` × `memory_limit` < `available_memory`.
+
+https://frankenphp.dev/docs/performance/#number-of-threads-and-workers
+
+### Calculating Optimal Configuration
+
+```caddyfile
+{
+    frankenphp {
+        num_threads 16      # Number of PHP threads
+        worker {
+            num 8           # Number of worker processes
+        }
+        php_ini memory_limit 256M
+    }
+}
+```
+
+#### Memory Calculation Example
+- **Available Memory**: 8GB (8192MB)
+- **PHP memory_limit**: 256MB
+- **num_threads**: 16
+- **Total PHP Memory**: 16 × 256MB = 4096MB (4GB)
+- **Remaining for OS/Caddy**: 4GB ✓
