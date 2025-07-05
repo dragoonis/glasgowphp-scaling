@@ -1,20 +1,24 @@
 {
-	frankenphp {
-        worker {
-            file ./public/index.php
-            watch
-        }
+	admin 0.0.0.0:2019
+	metrics
 
-        php_ini memory_limit 512M
+	frankenphp {
+		worker {
+			file ./public/index.php
+			watch
+			num 1 # change number of worker
+		}
+
+		php_ini memory_limit 512M
 	}
 }
 
-localhost {
+{$SERVER_NAME:localhost} {
+	root {$SERVER_ROOT:public/}
 	encode zstd br gzip
 
-    root public/
 
-	php_server {
-        try_files {path} index.php
-    }
+	{$CADDY_SERVER_EXTRA_DIRECTIVES}
+
+	php_server
 }

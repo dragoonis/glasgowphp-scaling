@@ -43,7 +43,7 @@ final class OrderController extends AbstractController
         ]);
     }
 
-    #[Route('/redis', name: 'list_orders_redis', methods: ['GET'])]
+    #[Route('/projection', name: 'list_orders_redis', methods: ['GET'])]
     public function listOrdersRedis(): JsonResponse
     {
         $envelope = $this->commandBus->dispatch(new ListOrdersCommand());
@@ -92,7 +92,7 @@ final class OrderController extends AbstractController
         ]);
     }
 
-    #[Route('/redis/{id}', name: 'get_order_redis', methods: ['GET'])]
+    #[Route('/projection/{id}', name: 'get_order_redis', methods: ['GET'])]
     public function getOrderRedis(int $id): JsonResponse
     {
         $envelope = $this->commandBus->dispatch(new GetOrderCommand($id));

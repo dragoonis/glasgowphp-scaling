@@ -1,16 +1,18 @@
 {
+	admin 0.0.0.0:2019
+	metrics
+
 	frankenphp {
-        php_ini memory_limit 512M
-        watch
+		php_ini memory_limit 512M
 	}
 }
 
-localhost {
+{$SERVER_NAME:localhost} {
+	root {$SERVER_ROOT:public/}
 	encode zstd br gzip
 
-    root public/
 
-	php_server {
-        try_files {path} index.php
-    }
+	{$CADDY_SERVER_EXTRA_DIRECTIVES}
+
+	php_server
 }

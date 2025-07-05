@@ -2,6 +2,47 @@ K6_SERVICE := k6
 
 .PHONY: k6 clean
 
+docker:
+	@echo "Pulling Docker images..."
+	docker pull redis:7-alpine
+	docker pull php:8.4-fpm
+	docker pull prom/prometheus:v2.53.4
+	docker pull grafana/grafana:latest
+	docker pull hipages/php-fpm_exporter:latest
+	docker pull dunglas/frankenphp
+	@echo "All Docker images pulled successfully!"
+
+# Individual Docker image pull commands
+docker-redis:
+	@echo "Pulling Redis image..."
+	docker pull redis:7-alpine
+	@echo "Redis image pulled successfully!"
+
+docker-php:
+	@echo "Pulling PHP-FPM image..."
+	docker pull php:8.4-fpm
+	@echo "PHP-FPM image pulled successfully!"
+
+docker-prometheus:
+	@echo "Pulling Prometheus image..."
+	docker pull prom/prometheus:v2.53.4
+	@echo "Prometheus image pulled successfully!"
+
+docker-grafana:
+	@echo "Pulling Grafana image..."
+	docker pull grafana/grafana:latest
+	@echo "Grafana image pulled successfully!"
+
+docker-exporter:
+	@echo "Pulling PHP-FPM Exporter image..."
+	docker pull hipages/php-fpm_exporter:latest
+	@echo "PHP-FPM Exporter image pulled successfully!"
+
+docker-frankenphp:
+	@echo "Pulling FrankenPHP image..."
+	docker pull dunglas/frankenphp
+	@echo "FrankenPHP image pulled successfully!"
+
 build:
 	docker-compose build
 
@@ -349,6 +390,13 @@ help:
 	@echo ""
 	@echo "Available targets:"
 	@echo "  help                    - Show this help message"
+	@echo "  docker                  - Pull all required Docker images"
+	@echo "  docker-redis            - Pull Redis image only"
+	@echo "  docker-php              - Pull PHP-FPM image only"
+	@echo "  docker-prometheus       - Pull Prometheus image only"
+	@echo "  docker-grafana          - Pull Grafana image only"
+	@echo "  docker-exporter         - Pull PHP-FPM Exporter image only"
+	@echo "  docker-frankenphp       - Pull FrankenPHP image only"
 	@echo ""
 	@echo "Franken Worker (https://localhost:444):"
 	@echo "  k6-franken-worker-products    - Test products endpoint"

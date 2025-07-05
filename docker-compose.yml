@@ -9,7 +9,6 @@ services:
     volumes:
       - .:/var/www/html
       - ./docker/fpm.conf:/usr/local/etc/php-fpm.d/zz-docker.conf
-      - ./docker/symfony.prod.ini:/usr/local/etc/php/conf.d/symfony.prod.ini
     networks:
       - app-net
 
@@ -23,11 +22,9 @@ services:
       - "2019:2019"
     volumes:
       - .:/var/www/html
-      - ./docker/Caddyfile.regular:/etc/caddy/Caddyfile
-      - ./docker/symfony.ini:/usr/local/etc/php/conf.d/symfony.prod.ini
+      - ./docker/Caddyfile.regular:/etc/frankenphp/Caddyfile
     tty: true
     environment:
-      CADDY_GLOBAL_OPTIONS: "admin 0.0.0.0:2019\nmetrics"
       SERVER_NAME: ":8080 https://localhost:443"
     networks:
       - app-net
@@ -44,12 +41,9 @@ services:
       - .:/var/www/html
       - caddy_data:/data
       - caddy_config:/config
-      - ./docker/Caddyfile:/etc/caddy/Caddyfile
-      - ./docker/symfony.ini:/usr/local/etc/php/conf.d/symfony.prod.ini
+      - ./docker/Caddyfile:/etc/frankenphp/Caddyfile
     tty: true
     environment:
-      CADDY_GLOBAL_OPTIONS: "admin 0.0.0.0:2019\nmetrics"
-      FRANKENPHP_CONFIG: "worker ./public/index.php"
       APP_RUNTIME: "Runtime\\FrankenPhpSymfony\\Runtime"
       SERVER_NAME: ":8080 https://localhost:443"
     networks:

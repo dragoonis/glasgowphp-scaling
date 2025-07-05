@@ -43,7 +43,7 @@ final class CustomerController extends AbstractController
         ]);
     }
 
-    #[Route('/redis', name: 'list_customers_redis', methods: ['GET'])]
+    #[Route('/projection', name: 'list_customers_redis', methods: ['GET'])]
     public function listCustomersRedis(): JsonResponse
     {
         $envelope = $this->commandBus->dispatch(new ListCustomersCommand());
@@ -91,7 +91,7 @@ final class CustomerController extends AbstractController
         ]);
     }
 
-    #[Route('/redis/{id}', name: 'get_customer_redis', methods: ['GET'])]
+    #[Route('/projection/{id}', name: 'get_customer_redis', methods: ['GET'])]
     public function getCustomerRedis(int $id): JsonResponse
     {
         $envelope = $this->commandBus->dispatch(new GetCustomerCommand($id));

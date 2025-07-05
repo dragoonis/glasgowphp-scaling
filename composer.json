@@ -69,6 +69,8 @@
         "twbs/bootstrap": "^4.5.3"
     },
     "config": {
+        "optimize-autoloader": true,
+        "classmap-authoritative": false,
         "allow-plugins": {
             "symfony/flex": true,
             "symfony/runtime": true,
