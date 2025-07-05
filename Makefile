@@ -111,9 +111,6 @@ franken-shell:
 worker-shell:
 	docker-compose exec -it franken bash
 
-k6:
-	k6 run ./k6/loadtest.js
-
 migrate: ## Run database migrations
 	docker-compose exec app php bin/console doctrine:migrations:migrate --no-interaction
 

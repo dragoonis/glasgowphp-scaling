@@ -42,6 +42,7 @@ show fpm status page - http://localhost:8088/fpm-status
 ```
 fpm.conf - pm.status_path = /fpm-status
 aa-nginx.conf - location ~ ^/fpm-status$ {
+
 ```
 
 **fpm-exporter**
@@ -96,9 +97,17 @@ show fpm metrics
 - find special command to calculate "Stuff", i think cpu thread count, and stuff, - it's inside slides and I think on
 - matheus blog
 
-### run this inside the container, during k6
+# run this inside the container, during k6
 
-```bash
+
+### check real-time usage of fpm processes
+
+```
+ps -ylC php-fpm --sort:rss
+```
+
+### calculate process memory
+``` bash
 ps --no-headers -o "rss,cmd" -C php-fpm | awk '{ sum+=$1} END { print sum/NR/1024 }'
 ```
 
