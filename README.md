@@ -1,4 +1,4 @@
-# GlasgowPHP Scaling Demo
+# WebSummerCamp 2025 - Scaling PHP Systems
 
 This project demonstrates a scalable Symfony CQRS application with Redis and DB projections, Docker Compose, and k6 load
 testing. All common tasks are managed via the Makefile.
