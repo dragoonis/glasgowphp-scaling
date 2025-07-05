@@ -19,6 +19,12 @@ testing. All common tasks are managed via the Makefile.
 
 ### opcache introduction
 
+```
+make up-opcache-dashboard
+```
+
+open - http://localhost:42042/opcache/status
+
 https://www.php.net/manual/en/opcache.configuration.php#:~:text=on%20all%20architectures.-,opcache.max_accelerated_files,-int
 
 
@@ -33,21 +39,30 @@ opcache.max_accelerated_files=16087
 
 show fpm status page - http://localhost:8088/fpm-status
 
-fpm.conf - `pm.status_path = /fpm-status`
-aa-nginx.conf - `location ~ ^/fpm-status$ {`
+```
+fpm.conf - pm.status_path = /fpm-status
+aa-nginx.conf - location ~ ^/fpm-status$ {
+```
 
+**fpm-exporter**
+```
 make up-exporter
 make ps | grep exporter
+```
 
 go to http://localhost:9253/metrics
 
+```
 make up-prometheus
 make ps | grep prom
+```
 
 go to http://localhost:9090/targets?search=
 
+```
 make up-grafana
 make ps | grep grafana
+```
 
 # show target prom sources
 
@@ -59,7 +74,7 @@ open http://localhost:3000
 username: croatia
 password: croatia
 
-4.2 show grafana fpm/opcache dashboard
+# show grafana fpm/opcache dashboard
 
 make k6-fpm-products-db
 see k6/report-UTC-xxxxxxx.html
