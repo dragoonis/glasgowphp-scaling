@@ -366,3 +366,136 @@ https://frankenphp.dev/docs/performance/#number-of-threads-and-workers
 Total Memory = num_threads × memory_limit + OS_overhead
 Recommended: Total Memory < Available System Memory × 0.8
 ```
+
+## k6 test
+
+This project includes comprehensive k6 load testing commands for FrankenPHP performance evaluation. All tests use the existing Makefile targets for consistent and reproducible testing.
+
+### Available k6 Test Commands
+
+#### FrankenPHP (Regular Mode - Port 443)
+```bash
+# Products testing
+make k6-franken-products-db        # Test products DB endpoint  
+make k6-franken-products-redis     # Test products Redis endpoint
+
+# Customers testing
+make k6-franken-customers-db       # Test customers DB endpoint
+make k6-franken-customers-redis    # Test customers Redis endpoint
+
+# Orders testing
+make k6-franken-orders-db          # Test orders DB endpoint
+make k6-franken-orders-redis       # Test orders Redis endpoint
+```
+
+#### FrankenPHP Worker Mode (Port 444)
+```bash
+# Products testing
+make k6-franken-worker-products-db        # Test products DB endpoint
+make k6-franken-worker-products-redis     # Test products Redis endpoint
+
+# Customers testing
+make k6-franken-worker-customers-db       # Test customers DB endpoint
+make k6-franken-worker-customers-redis    # Test customers Redis endpoint
+
+# Orders testing
+make k6-franken-worker-orders-db          # Test orders DB endpoint
+make k6-franken-worker-orders-redis       # Test orders Redis endpoint
+```
+
+### Batch Testing Commands
+
+**Run all tests against FrankenPHP (Regular Mode):**
+```bash
+make k6-all-franken
+```
+
+**Run all tests against FrankenPHP Worker Mode:**
+```bash
+make k6-all-franken-worker
+```
+
+**Run all tests against all environments (FPM, FrankenPHP, FrankenPHP Worker):**
+```bash
+make k6-all-environments
+```
+
+### Performance Comparison Testing
+
+#### Step 1: Individual Endpoint Testing
+```bash
+# Test products endpoint on both FrankenPHP modes
+make k6-franken-products
+make k6-franken-worker-products
+
+# Compare results in generated HTML reports
+# Check: k6/report-*.html files
+```
+
+#### Step 2: Database vs Redis Performance
+```bash
+# Test database performance
+make k6-franken-products-db
+make k6-franken-worker-products-db
+
+# Test Redis projection performance  
+make k6-franken-products-redis
+make k6-franken-worker-products-redis
+
+# Compare response times and throughput
+```
+
+#### Step 3: Monitor Real-time Metrics
+During k6 testing, monitor FrankenPHP metrics:
+```bash
+# FrankenPHP regular mode metrics
+curl http://localhost:2019/metrics | grep frankenphp
+
+# Worker mode metrics
+curl http://localhost:2020/metrics | grep frankenphp
+```
+
+### Grafana Dashboard
+
+**Monitor during k6 testing:**
+1. **Access Grafana**: http://localhost:3000 (croatia/croatia)
+2. **FrankenPHP Panels**: Worker count, request rate, response time
+3. **Real-time Updates**: Watch metrics change during load tests
+
+**Key Dashboard Panels:**
+- **Worker Count**: `frankenphp_total_workers`
+- **Request Rate**: `frankenphp_requests_total`
+- **Response Time**: `frankenphp_request_duration_seconds`
+- **Memory Usage**: `frankenphp_memory_usage_bytes`
+
+### Test Configuration
+
+**Environment Variables Used:**
+- `FRANKEN_URL`: https://localhost:443 (FrankenPHP regular mode)
+- `FRANKEN_WORKER_URL`: https://localhost:444 (FrankenPHP worker mode)
+- `FPM_URL`: http://localhost:8088 (PHP-FPM for comparison)
+
+**k6 Test Scripts:**
+- `k6/list_products.js` - Products endpoint testing
+- `k6/list_products_db.js` - Database query testing
+- `k6/list_products_redis.js` - Redis projection testing
+- `k6/list_customers.js` - Customers endpoint testing
+- `k6/list_orders.js` - Orders endpoint testing
+- `k6/loadtest.js` - Blog/load testing
+
+### Utility Commands
+
+**Clean test reports:**
+```bash
+make k6-clean-reports
+```
+
+**Install k6 (if not installed):**
+```bash
+make k6-install
+```
+
+**View all available k6 commands:**
+```bash
+make help
+```
