@@ -218,8 +218,7 @@ This project uses different OPcache configurations for development and productio
 
 ## FrankenPHP Auto-Reload (File Watching)
 
-FrankenPHP and franken-worker can automatically reload PHP workers when your code changes, thanks to the `watch`
-directive in the Caddyfile:
+FrankenPHP and franken-worker can automatically reload PHP workers when your code changes, thanks to the `watch` directive in the Caddyfile:
 
 ```caddyfile
 frankenphp {
@@ -231,11 +230,61 @@ frankenphp {
 }
 ```
 
-- If `watch` is present, FrankenPHP will monitor your PHP files and reload the worker process on changes.
-- This is especially useful for development, as you do not need to restart the container to see code changes.
-- Both the main FrankenPHP and franken-worker services support this if configured.
+### How It Works
+- The `watch` directive monitors your PHP source files for changes (saves, creates, deletes)
+- When changes are detected, workers gracefully restart to load the new code
+- No manual intervention or container restarts needed
 
-**Note:** In production, you may want to remove the `watch` directive for performance and stability.
+### Watch Specific Paths
+You can watch specific directories instead of all files:
+
+```caddyfile
+frankenphp {
+    worker {
+        file ./public/index.php
+        watch ./app        # Watch app directory
+        watch ./config     # Watch config directory
+        watch ./routes     # Watch routes directory
+    }
+}
+```
+
+### Benefits
+- **Development Speed**: See changes instantly without restarting containers
+- **Zero Downtime**: Workers reload gracefully, maintaining active connections
+- **Selective Watching**: Monitor only relevant directories to reduce overhead
+
+### Important Considerations
+- **Performance Impact**: File watching uses system resources (inotify on Linux)
+- **Production Warning**: Always disable `watch` in production for stability
+- **Large Projects**: Watching many files can impact performance
+
+**Production Best Practice:**
+```caddyfile
+frankenphp {
+    worker {
+        file ./public/index.php
+        # watch  # Commented out for production
+        num 8   # Increase workers instead
+    }
+}
+```
+
+### Worker Metrics
+When `metrics` is enabled, worker information is exposed at the metrics endpoint:
+
+```
+# With num 1
+frankenphp_total_workers{worker="/var/www/html/public/index.php"} 1
+
+# With num 8
+frankenphp_total_workers{worker="/var/www/html/public/index.php"} 8
+```
+
+- Access metrics at `http://localhost:2019/metrics` (or your configured admin port)
+- The `frankenphp_total_workers` metric shows active workers per script
+- Worker path reflects the `file` directive in your configuration
+- Updates in real-time when workers are added/removed
 
 ## Caddy Configuration
 
@@ -247,8 +296,81 @@ environment:
   SERVER_NAME: ":8080 https://localhost:443"
 ```
 
-- `CADDY_GLOBAL_OPTIONS`: Appends global Caddy configuration (enables admin API and metrics)
-- `SERVER_NAME`: Defines server names for the Caddy instance
-- These values are appended to the base Caddyfile configuration
+### Environment Variables Explained
 
-This allows for flexible configuration without modifying the Caddyfile directly.
+#### `CADDY_GLOBAL_OPTIONS`
+Injects global Caddy directives at the top of your configuration:
+- `admin 0.0.0.0:2019` - Enables admin API on all interfaces
+    - Access metrics at `http://localhost:2019/metrics`
+    - Runtime config changes via API
+    - **Security**: Use `admin localhost:2019` in production
+- `metrics` - Enables Prometheus-compatible metrics endpoint
+- Use `\n` for line breaks between multiple directives
+
+#### `SERVER_NAME`
+Defines which addresses/domains Caddy will serve:
+- `:8080` - HTTP on port 8080 (all interfaces)
+- `https://localhost:443` - HTTPS on localhost
+- Can specify multiple: `example.com www.example.com`
+- Caddy auto-provisions SSL certificates for domains
+
+### Advanced Examples
+
+#### Development Configuration
+```caddyfile
+{
+    admin localhost:2019
+    metrics
+    debug
+}
+
+localhost:8080 {
+    root public/
+    encode gzip
+    php_server
+}
+```
+
+#### Production Configuration
+```caddyfile
+{
+    admin off  # Disable admin API
+}
+
+example.com www.example.com {
+    root /var/www/html
+    encode zstd br gzip
+    
+    header {
+        X-Frame-Options DENY
+        X-Content-Type-Options nosniff
+    }
+    
+    handle_errors {
+        rewrite * /error.php
+        php_server
+    }
+    
+    php_server
+}
+```
+
+#### Multi-site Configuration
+```caddyfile
+site1.com {
+    root /var/www/site1/public
+    php_server
+}
+
+site2.com {
+    root /var/www/site2/public
+    php_server
+}
+
+:8080 {
+    root /var/www/default/public
+    php_server
+}
+```
+
+This approach keeps your Caddyfile clean while allowing per-deployment customization.
