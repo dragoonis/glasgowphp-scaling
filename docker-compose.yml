@@ -41,7 +41,7 @@ services:
       - .:/var/www/html:Z
       - caddy_data:/data
       - caddy_config:/config
-      - ./docker/Caddyfile:/etc/frankenphp/Caddyfile:Z
+      - ./docker/Caddyfile:/etc/frankenphp/Caddyfile
     tty: true
     environment:
       APP_RUNTIME: "Runtime\\FrankenPhpSymfony\\Runtime"
