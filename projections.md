@@ -1,32 +1,173 @@
 ## Rebuild projections (Redis):
 
 Go to http://localhost:8088/en/products/db
-
 Go to http://localhost:8088/en/products/projection
 
 # Move data into projection
+Run this command
+
 ```bash
 make rebuild-projections
 ```
 
-
-
-
 ## Run load test against it
 
 ### fpm MySQL read
-make k6-fpm-products-db
+Run this command
 
+```bash
+make k6-fpm-products-db
+```
+
+Go to http://localhost:3000/dashboards
+
+Click `PHP-FPM Performance Dashboard`
+
+![img_1.png](img_1.png)
+
+1. Select Datasource to Prometheus
+2. Select Pool to www
 
 ### read from projection
+Run this command
+
+```bash
+make rebuild-products // Rebuilding data redis to projection from Seeder 
 make k6-fpm-products-redis
+```
+Go to http://localhost:3000/dashboards
+
+Click `PHP-FPM Performance Dashboard`
+
+![img_1.png](img_1.png)
+
+1. Select Datasource to Prometheus
+2. Select Pool to www
 
 ### franken MySQL read
+Run this command
 
+```bash
 make k6-franken-products-db
+```
 
+Go to http://localhost:3000/dashboards
 
+Click `Caddy`
 
+![img.png](img.png)
+
+1. Select Job to `Caddy`
+2. Select instance to `franken:2019`
+3. Set Last 5 minutes at `Top right` button
+4. Set Refresh 5s
+
+### franken Projection read
+Run this command
+
+```bash
+make k6-franken-products-redis
+```
+
+Go to http://localhost:3000/dashboards
+
+Click `Caddy`
+
+![img.png](img.png)
+
+1. Select Job to `Caddy`
+2. Select instance to `franken-worker:2019`
+3. Set Last 5 minutes at `Top right` button
+4. Set Refresh 5s
+
+### Franken Worker MySQL Read
+Run this command
+
+```bash
+make k6-franken-worker-products-db
+```
+
+Go to http://localhost:3000/dashboards
+
+Click `Caddy`
+
+![img_2.png](img_2.png)
+
+1. Select Job to `Caddy`
+2. Select instance to `franken-worker:2019`
+3. Set Last 5 minutes at `Top right` button
+4. Set Refresh 5s
+
+### Franken Worker Projection Read
+
+Run this command
+
+```bash
+make k6-franken-worker-products-redis
+```
+
+Go to http://localhost:3000/dashboards
+
+Click `Caddy`
+
+![img_3.png](img_3.png)![img.png](img.png)
+
+1. Select Job to `Caddy`
+2. Select instance to `franken-worker:2019`
+3. Set Last 5 minutes at `Top right` button
+4. Set Refresh 5s
+
+let's try another endpoint that reload relationship 
+
+```bash
+make rebuild-orders
+make k6-franken-worker-orders-redis
+```
+
+try see again http://localhost:3000/dashboards
+
+it will have slow response time
+
+![img_4.png](img_4.png)
+
+let's scale the num of workers in Caddyfile
+
+change num 1 to more workers
+
+```
+{
+	admin 0.0.0.0:2019
+	metrics
+
+	frankenphp {
+		worker {
+			file ./public/index.php
+			watch
+			num 16 # change number of worker
+		}
+
+		php_ini memory_limit 512M
+	}
+}
+```
+
+let's restart the configuration
+
+```bash
+make down-worker && make up-worker
+```
+
+after changes you will see in the dashboard from FrankenPHP Metrics section
+
+![img_5.png](img_5.png)
+
+retry again the k6 to see different in Grafana worker dashboard
+
+```bash
+make k6-franken-worker-products-db
+```
+
+Go to the http://localhost:3000 dashboard to check
 
 ### Product Projections
 - **Entity**: `ProductProjection`

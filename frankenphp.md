@@ -376,31 +376,43 @@ This project includes comprehensive k6 load testing commands for FrankenPHP perf
 #### FrankenPHP (Regular Mode - Port 443)
 ```bash
 # Products testing
+make k6-franken-products           # Test products endpoint
 make k6-franken-products-db        # Test products DB endpoint  
 make k6-franken-products-redis     # Test products Redis endpoint
 
 # Customers testing
+make k6-franken-customers          # Test customers endpoint
 make k6-franken-customers-db       # Test customers DB endpoint
 make k6-franken-customers-redis    # Test customers Redis endpoint
 
 # Orders testing
+make k6-franken-orders             # Test orders endpoint
 make k6-franken-orders-db          # Test orders DB endpoint
 make k6-franken-orders-redis       # Test orders Redis endpoint
+
+# Blog testing
+make k6-franken-blog               # Test blog endpoint
 ```
 
 #### FrankenPHP Worker Mode (Port 444)
 ```bash
 # Products testing
+make k6-franken-worker-products           # Test products endpoint
 make k6-franken-worker-products-db        # Test products DB endpoint
 make k6-franken-worker-products-redis     # Test products Redis endpoint
 
 # Customers testing
+make k6-franken-worker-customers          # Test customers endpoint
 make k6-franken-worker-customers-db       # Test customers DB endpoint
 make k6-franken-worker-customers-redis    # Test customers Redis endpoint
 
 # Orders testing
+make k6-franken-worker-orders             # Test orders endpoint
 make k6-franken-worker-orders-db          # Test orders DB endpoint
 make k6-franken-worker-orders-redis       # Test orders Redis endpoint
+
+# Blog testing
+make k6-franken-worker-blog               # Test blog endpoint
 ```
 
 ### Batch Testing Commands
@@ -444,6 +456,157 @@ make k6-franken-worker-products-redis
 
 # Compare response times and throughput
 ```
+
+## Load Testing Scenarios
+
+### FPM MySQL Read
+
+**Products:**
+```bash
+make k6-fpm-products-db
+```
+
+**Customers:**
+```bash
+make k6-fpm-customers-db
+```
+
+**Orders:**
+```bash
+make k6-fpm-orders-db
+```
+
+**Grafana Setup:**
+1. Go to http://localhost:3000/dashboards
+2. Click `PHP-FPM Performance Dashboard`
+3. Select Datasource to Prometheus
+4. Select Pool to www
+
+### FPM Projection Read
+
+**Products:**
+```bash
+make rebuild-products  # Rebuild data redis to projection from Seeder
+make k6-fpm-products-redis
+```
+
+**Customers:**
+```bash
+make rebuild-customers  # Rebuild data redis to projection from Seeder
+make k6-fpm-customers-redis
+```
+
+**Orders:**
+```bash
+make rebuild-orders  # Rebuild data redis to projection from Seeder
+make k6-fpm-orders-redis
+```
+
+**Grafana Setup:**
+1. Go to http://localhost:3000/dashboards
+2. Click `PHP-FPM Performance Dashboard`
+3. Select Datasource to Prometheus
+4. Select Pool to www
+
+### FrankenPHP MySQL Read
+
+**Products:**
+```bash
+make k6-franken-products-db
+```
+
+**Customers:**
+```bash
+make k6-franken-customers-db
+```
+
+**Orders:**
+```bash
+make k6-franken-orders-db
+```
+
+**Grafana Setup:**
+1. Go to http://localhost:3000/dashboards
+2. Click `Caddy`
+3. Select Job to `Caddy`
+4. Select instance to `franken:2019`
+5. Set Last 5 minutes at `Top right` button
+6. Set Refresh 5s
+
+### FrankenPHP Projection Read
+
+**Products:**
+```bash
+make k6-franken-products-redis
+```
+
+**Customers:**
+```bash
+make k6-franken-customers-redis
+```
+
+**Orders:**
+```bash
+make k6-franken-orders-redis
+```
+
+**Grafana Setup:**
+1. Go to http://localhost:3000/dashboards
+2. Click `Caddy`
+3. Select Job to `Caddy`
+4. Select instance to `franken:2019`
+5. Set Last 5 minutes at `Top right` button
+6. Set Refresh 5s
+
+### FrankenPHP Worker MySQL Read
+
+**Products:**
+```bash
+make k6-franken-worker-products-db
+```
+
+**Customers:**
+```bash
+make k6-franken-worker-customers-db
+```
+
+**Orders:**
+```bash
+make k6-franken-worker-orders-db
+```
+
+**Grafana Setup:**
+1. Go to http://localhost:3000/dashboards
+2. Click `Caddy`
+3. Select Job to `Caddy`
+4. Select instance to `franken-worker:2019`
+5. Set Last 5 minutes at `Top right` button
+6. Set Refresh 5s
+
+### FrankenPHP Worker Projection Read
+
+**Products:**
+```bash
+make k6-franken-worker-products-redis
+```
+
+**Customers:**
+```bash
+make k6-franken-worker-customers-redis
+```
+
+**Orders:**
+```bash
+make k6-franken-worker-orders-redis
+```
+
+**Grafana Setup:**
+1. Go to http://localhost:3000/dashboards
+2. Click `Caddy`
+3. Select Job to `Caddy`
+4. Select instance to `franken-worker:2019`
+5. Set Last 5 minutes at `Top right` button
+6. Set Refresh 5s
 
 #### Step 3: Monitor Real-time Metrics
 During k6 testing, monitor FrankenPHP metrics:

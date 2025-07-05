@@ -1,5 +1,10 @@
 K6_SERVICE := k6
 
+# Environment variables for k6 testing
+FRANKEN_URL := https://localhost:443
+FRANKEN_WORKER_URL := https://localhost:444
+FPM_URL := http://localhost:8088
+
 .PHONY: k6 clean
 
 docker:
@@ -359,7 +364,7 @@ rebuild-products:
 .PHONY: rebuild-customers
 rebuild-customers:
 	@echo "Rebuilding customer projections..."
-	docker-compose exec php bin/console app:rebuild-customer-projections
+	docker-compose exec app bin/console app:rebuild-customer-projections
 
 .PHONY: rebuild-orders
 rebuild-orders:

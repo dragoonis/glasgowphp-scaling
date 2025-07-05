@@ -6,7 +6,7 @@
 		worker {
 			file ./public/index.php
 			watch
-			num 1 # change number of worker
+			num 16 # change number of worker
 		}
 
 		php_ini memory_limit 512M
