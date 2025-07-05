@@ -2,15 +2,17 @@
 	admin 0.0.0.0:2019
 	metrics
 
-	frankenphp {
-		worker {
-			file ./public/index.php
-			watch
-			num 1 # change number of worker
-		}
+    frankenphp {
+        num_threads 10
+        max_threads auto    # Dynamic scaling based on load
+        worker {
+            file ./public/index.php
+            num 8           # Starting workers
+        }
 
-		php_ini memory_limit 512M
-	}
+        # Memory-based scaling configuration
+        php_ini memory_limit 512M
+    }
 }
 
 {$SERVER_NAME:localhost} {
