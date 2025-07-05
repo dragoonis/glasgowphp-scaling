@@ -17,11 +17,24 @@ testing. All common tasks are managed via the Makefile.
    make seed
    ```
 
-4. opcache introduction
+### opcache introduction
 
-4.1 show fpm and opcache dashboard GUI
+https://www.php.net/manual/en/opcache.configuration.php#:~:text=on%20all%20architectures.-,opcache.max_accelerated_files,-int
+
+
+```
+find . -type f -name "*.php" | wc -l
+
+opcache.max_accelerated_files=16087
+
+```
+
+### show fpm and opcache dashboard GUI
 
 show fpm status page - http://localhost:8088/fpm-status
+
+fpm.conf - `pm.status_path = /fpm-status`
+aa-nginx.conf - `location ~ ^/fpm-status$ {`
 
 make up-exporter
 make ps | grep exporter
