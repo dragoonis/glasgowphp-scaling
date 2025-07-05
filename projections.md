@@ -300,3 +300,22 @@ make k6-franken-orders-redis
 make k6-franken-worker-products-redis
 make k6-franken-worker-customers-redis
 make k6-franken-worker-orders-redis
+
+## Known Issues
+
+### Slow Redis Performance Issue
+
+There is currently a known issue with slow Redis performance in the projection system. When running load tests against Redis projections, you may experience significantly slower response times compared to expected performance.
+
+**See if you can figure out why** - This could be related to:
+- Redis connection pooling configuration
+- Serialization/deserialization overhead
+- Memory usage patterns
+- Network latency between application and Redis
+- Redis server configuration optimization
+
+To investigate this issue:
+1. Monitor Redis metrics during load tests
+2. Check Redis server logs for any errors or warnings
+3. Analyze the projection service implementation
+4. Review Redis connection handling in the application

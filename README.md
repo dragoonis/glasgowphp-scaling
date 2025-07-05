@@ -48,6 +48,29 @@ Run the test script to verify all dependencies are installed:
 
 This will check for Docker, Docker Compose, Make, and K6 and report their status.
 
+### Docker Images Setup
+
+Before starting the application, you need to pull the required Docker images. You can do this in two ways:
+
+**Option 1: Pull all images at once**
+```bash
+make docker
+```
+
+**Option 2: Pull individual images**
+```bash
+# Pull base images
+docker pull redis:7-alpine
+docker pull php:8.4-fpm
+
+# Pull additional images as needed
+docker pull prom/prometheus
+docker pull grafana/grafana
+docker pull caddy:2-alpine
+```
+
+This ensures all required Docker images are available locally before starting the services.
+
 ## Quick Start
 
 1. **Build and start all services:**
