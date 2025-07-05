@@ -3,6 +3,51 @@
 This project demonstrates a scalable Symfony CQRS application with Redis and DB projections, Docker Compose, and k6 load
 testing. All common tasks are managed via the Makefile.
 
+## Setup
+
+Before running this project, ensure you have the following dependencies installed:
+
+Check missing dependencies.
+
+```bash
+./test-system.sh
+```
+
+### Required Dependencies
+
+1. **Docker & Docker Compose**
+   - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (includes Docker Compose)
+   - Or install separately: [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
+
+2. **Make**
+   - **macOS**: Usually pre-installed, or install via Homebrew: `brew install make`
+   - **Linux**: Install via package manager:
+     - Ubuntu/Debian: `sudo apt-get install make`
+     - CentOS/RHEL: `sudo yum install make`
+     - Fedora: `sudo dnf install make`
+
+3. **K6 (Load Testing Tool)**
+   - **macOS**: `brew install k6`
+   - **Linux**:
+     - Ubuntu/Debian: `sudo gpg -k`
+     ```bash
+     sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+     echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+     sudo apt-get update
+     sudo apt-get install k6
+     ```
+     - CentOS/RHEL/Fedora: `sudo yum install k6` or `sudo dnf install k6`
+
+### Verify Installation
+
+Run the test script to verify all dependencies are installed:
+
+```bash
+./test-system.sh
+```
+
+This will check for Docker, Docker Compose, Make, and K6 and report their status.
+
 ## Quick Start
 
 1. **Build and start all services:**
