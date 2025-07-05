@@ -49,7 +49,7 @@ final class SeedDatabaseCommand extends Command
         // Create Products
         $io->section('Creating 10,000 products...');
         $products = [];
-        for ($i = 0; $i < 100; $i++) {
+        for ($i = 0; $i < 10000; $i++) {
             $product = new Product();
             $product->setName($faker->words(3, true));
             $product->setDescription($faker->paragraph());
