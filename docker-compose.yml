@@ -7,7 +7,7 @@ services:
     ports:
       - "8088:80"
     volumes:
-      - .:/var/www/html
+      - .:/var/www/html:Z
       - ./docker/fpm.conf:/usr/local/etc/php-fpm.d/zz-docker.conf
     networks:
       - app-net
@@ -21,7 +21,7 @@ services:
       - "443:443/udp"
       - "2019:2019"
     volumes:
-      - .:/var/www/html
+      - .:/var/www/html:Z
       - ./docker/Caddyfile.regular:/etc/frankenphp/Caddyfile
     tty: true
     environment:
@@ -38,10 +38,10 @@ services:
       - "444:443/udp"
       - "2020:2019"
     volumes:
-      - .:/var/www/html
+      - .:/var/www/html:Z
       - caddy_data:/data
       - caddy_config:/config
-      - ./docker/Caddyfile:/etc/frankenphp/Caddyfile
+      - ./docker/Caddyfile:/etc/frankenphp/Caddyfile:Z
     tty: true
     environment:
       APP_RUNTIME: "Runtime\\FrankenPhpSymfony\\Runtime"
