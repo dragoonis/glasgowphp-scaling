@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Entity\Customer;
 use App\Entity\Order;
+use App\Entity\OrderItem;
 use App\Entity\Product;
 use App\Repository\CustomerRepository;
 use App\Repository\OrderRepository;
@@ -94,10 +95,9 @@ final class SeedDatabaseCommand extends Command
         // Create Orders (2 per customer)
         $io->section('Creating 20,000 orders (2 per customer)...');
         $orderStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-        
+        $batchSize = 500; // 500 customers = 1000 orders
         for ($i = 0; $i < 5000; $i++) {
             $customer = $customers[$i];
-            
             // Create 2 orders per customer
             for ($j = 0; $j < 2; $j++) {
                 $order = new Order();
@@ -105,40 +105,40 @@ final class SeedDatabaseCommand extends Command
                 $order->setOrderNumber('ORD-' . str_pad($i * 2 + $j + 1, 6, '0', STR_PAD_LEFT));
                 $order->setStatus($faker->randomElement($orderStatuses));
                 $order->setCreatedAt(\DateTimeImmutable::createFromMutable($faker->dateTimeBetween('-6 months', 'now')));
-
                 // Add 1-5 random products to the order
-                $orderItems = [];
                 $totalAmount = 0;
                 $numItems = $faker->numberBetween(1, 5);
-                
                 for ($k = 0; $k < $numItems; $k++) {
                     $product = $faker->randomElement($products);
                     $quantity = $faker->numberBetween(1, 5);
                     $price = $product->getPrice();
                     $itemTotal = $price * $quantity;
                     $totalAmount += $itemTotal;
-                    
-                    $orderItems[] = [
-                        'product_id' => $product->getId(),
-                        'product_name' => $product->getName(),
-                        'quantity' => $quantity,
-                        'price' => $price,
-                        'total' => $itemTotal
-                    ];
+                    $orderItem = new OrderItem();
+                    $orderItem->setOrder($order);
+                    $orderItem->setName($product->getName());
+                    $orderItem->setQuantity($quantity);
+                    $orderItem->setPrice($price);
+                    $orderItem->setTotal($itemTotal);
+                    $order->addItem($orderItem);
                 }
-                
-                $order->setItems($orderItems);
                 $order->setTotalAmount(number_format($totalAmount, 2, '.', ''));
-
                 $this->entityManager->persist($order);
             }
-
-            if (($i + 1) % 1000 === 0) {
+            if (($i + 1) % $batchSize === 0) {
                 $this->entityManager->flush();
+                $this->entityManager->clear();
+                // Re-fetch products and customers after clear
+                $products = $this->entityManager->getRepository(Product::class)->findAll();
+                $customers = $this->entityManager->getRepository(Customer::class)->findAll();
+                $io->text("[Batch] Flushed and cleared at customer " . ($i + 1));
+            }
+            if (($i + 1) % 1000 === 0) {
                 $io->text("Created " . (($i + 1) * 2) . " orders");
             }
         }
         $this->entityManager->flush();
+        $this->entityManager->clear();
         $io->success('Created 20,000 orders');
 
         $io->success('Database seeding completed successfully!');

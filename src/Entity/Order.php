@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\OrderRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: OrderRepository::class)]
@@ -27,8 +29,6 @@ class Order
     #[ORM\Column(length: 50)]
     private ?string $status = null;
 
-    #[ORM\Column(type: 'json')]
-    private array $items = [];
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
@@ -36,10 +36,16 @@ class Order
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    /**
+     * @var Collection<int, OrderItem>
+     */
+    #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'order', cascade: ['persist'], orphanRemoval: true)]
+    private Collection $items;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
-        $this->items = [];
+        $this->items = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -91,23 +97,6 @@ class Order
         return $this;
     }
 
-    public function getItems(): array
-    {
-        return $this->items;
-    }
-
-    public function setItems(array $items): static
-    {
-        $this->items = $items;
-        return $this;
-    }
-
-    public function addItem(array $item): static
-    {
-        $this->items[] = $item;
-        return $this;
-    }
-
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
@@ -127,6 +116,36 @@ class Order
     public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, OrderItem>
+     */
+    public function getItems(): Collection
+    {
+        return $this->items;
+    }
+
+    public function addItem(OrderItem $item): static
+    {
+        if (!$this->items->contains($item)) {
+            $this->items->add($item);
+            $item->setOrder($this);
+        }
+
+        return $this;
+    }
+
+    public function removeItem(OrderItem $item): static
+    {
+        if ($this->items->removeElement($item)) {
+            // set the owning side to null (unless already changed)
+            if ($item->getOrder() === $this) {
+                $item->setOrder(null);
+            }
+        }
+
         return $this;
     }
 } 

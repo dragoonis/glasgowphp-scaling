@@ -4,6 +4,8 @@ namespace App\CommandHandler;
 
 use App\Command\AddOrderCommand;
 use App\Entity\Order;
+use App\Entity\OrderItem;
+use App\Entity\Product;
 use App\Projection\OrderProjectionService;
 use App\Repository\CustomerRepository;
 use App\Repository\OrderRepository;
@@ -14,46 +16,57 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 final class AddOrderCommandHandler
 {
     public function __construct(
-        private readonly OrderRepository $orderRepository,
-        private readonly CustomerRepository $customerRepository,
+        private readonly OrderRepository        $orderRepository,
+        private readonly CustomerRepository     $customerRepository,
         private readonly OrderProjectionService $projectionService,
-        private readonly ProductRepository $productRepository
-    ) {}
+        private readonly ProductRepository      $productRepository
+    )
+    {
+    }
 
     public function __invoke(AddOrderCommand $command): void
     {
         $customer = $this->customerRepository->find($command->customerId);
-        
+
         if (!$customer) {
             throw new \InvalidArgumentException('Customer not found');
         }
 
-        $orderItems = [];
         $totalAmount = 0.0;
+
+        $products = $this->productRepository->findByIdsAsHashMap(
+            array_map(
+                static fn (array $item) => $item['product_id'],
+                $command->items
+            ),
+        );
+
+        $order = new Order();
+
         foreach ($command->items as $item) {
-            $productId = $item['product_id'] ?? null;
+            $product = $products[$item['product_id']] ?? null;
             $quantity = $item['quantity'] ?? 1;
-            if (!$productId) continue;
-            $product = $this->productRepository->find($productId);
-            if (!$product) continue;
-            $price = (float)$product->getPrice();
+
+            if (! $product) continue;
+
+            $price = (float) $product->getPrice();
             $total = $price * $quantity;
-            $orderItems[] = [
-                'product_id' => $productId,
-                'product_name' => $product->getName(),
-                'quantity' => $quantity,
-                'price' => $price,
-                'total' => $total
-            ];
+
+            $orderItem = new OrderItem();
+            $orderItem->setOrder($order);
+            $orderItem->setName($product->getName());
+            $orderItem->setQuantity($quantity);
+            $orderItem->setPrice($price);
+            $orderItem->setTotal($total);
+            $order->addItem($orderItem);
+
             $totalAmount += $total;
         }
 
-        $order = new Order();
         $order->setCustomer($customer);
         $order->setOrderNumber($command->orderNumber);
         $order->setTotalAmount(number_format($totalAmount, 2, '.', ''));
         $order->setStatus($command->status);
-        $order->setItems($orderItems);
         $order->setCreatedAt($command->createdAt);
 
         $this->orderRepository->save($order, true);

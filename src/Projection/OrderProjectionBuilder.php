@@ -15,7 +15,15 @@ final class OrderProjectionBuilder
             $order->getOrderNumber(),
             $order->getTotalAmount(),
             $order->getStatus(),
-            $order->getItems(),
+            array_map(function($item) {
+                return [
+                    'id' => $item->getId(),
+                    'name' => $item->getName(),
+                    'quantity' => $item->getQuantity(),
+                    'price' => $item->getPrice(),
+                    'total' => $item->getTotal(),
+                ];
+            }, $order->getItems()->toArray()),
             $order->getCreatedAt(),
             $order->getUpdatedAt()
         );

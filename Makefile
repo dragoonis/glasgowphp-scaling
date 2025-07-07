@@ -122,7 +122,7 @@ migrate: ## Run database migrations
 seed: ## Seed the database with test data
 	@echo "Seeding database with test data..."
 	@echo "Seeder file: src/Command/SeedDatabaseCommand.php"
-	docker-compose exec app php bin/console app:seed-database
+	docker-compose exec app php -dmemory_limit=-1 bin/console app:seed-database
 
 setup: migrate seed ## Run migrations and seed database
 
