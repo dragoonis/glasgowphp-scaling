@@ -40,35 +40,7 @@ final class OrderProjectionRepository
         
         // Get all orders in ONE query using MGET
         $allData = $this->redis->mget($keys);
-        
-        $projections = [];
-        foreach ($allData as $index => $data) {
-            if ($data !== null) {
-                $decoded = json_decode($data, true);
-                if ($decoded) {
-                    $projections[] = $this->buildFromArray($decoded);
-                }
-            }
-        }
 
-        return $projections;
-    }
-
-    public function findByCustomer(int $customerId): array
-    {
-        // Get all order IDs for this customer in one query
-        $orderIds = $this->redis->smembers(self::REDIS_CUSTOMER_KEY . $customerId);
-        
-        if (empty($orderIds)) {
-            return [];
-        }
-
-        // Build all keys at once
-        $keys = array_map(fn($id) => self::REDIS_KEY_PREFIX . $id, $orderIds);
-        
-        // Get all orders in ONE query using MGET
-        $allData = $this->redis->mget($keys);
-        
         $projections = [];
         foreach ($allData as $index => $data) {
             if ($data !== null) {

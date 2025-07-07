@@ -35,7 +35,15 @@ final class OrderController extends AbstractController
                     'order_number' => $o->getOrderNumber(),
                     'total_amount' => $o->getTotalAmount(),
                     'status' => $o->getStatus(),
-                    'items' => $o->getItems(),
+                    'items' => array_map(function($item) {
+                        return [
+                            'id' => $item->getId(),
+                            'name' => $item->getName(),
+                            'quantity' => $item->getQuantity(),
+                            'price' => $item->getPrice(),
+                            'total' => $item->getTotal(),
+                        ];
+                    }, $o->getItems()->toArray()),
                     'created_at' => $o->getCreatedAt()?->format(DATE_ATOM),
                 ];
             }, $orders),
@@ -86,7 +94,15 @@ final class OrderController extends AbstractController
                 'order_number' => $order->getOrderNumber(),
                 'total_amount' => $order->getTotalAmount(),
                 'status' => $order->getStatus(),
-                'items' => $order->getItems(),
+                'items' => array_map(function($item) {
+                    return [
+                        'id' => $item->getId(),
+                        'name' => $item->getName(),
+                        'quantity' => $item->getQuantity(),
+                        'price' => $item->getPrice(),
+                        'total' => $item->getTotal(),
+                    ];
+                }, $order->getItems()->toArray()),
                 'created_at' => $order->getCreatedAt()?->format(DATE_ATOM),
             ]
         ]);
